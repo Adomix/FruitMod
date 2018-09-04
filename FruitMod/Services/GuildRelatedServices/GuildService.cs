@@ -64,7 +64,7 @@ namespace FruitMod.Services
                 {
                     var embed = new EmbedBuilder()
                     .WithTitle("A message has been deleted!")
-                    .AddField($"User's {msg.Author} message has been deleted!", $"```ini\n[{msg.Content}]\nAttachment:{attachment ?? "No attachment"}\n```")
+                    .AddField($"User's {msg.Author} message has been deleted!", Format.Code($"[{msg.Content}]\nAttachment:[{attachment ?? "No attachment"}]", "ini"))
                     .AddField($"From channel:", $"```ini\n[{msg.Channel}]\n```")
                     .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
                     .WithColor(Color.Red)
