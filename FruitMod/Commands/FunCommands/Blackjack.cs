@@ -39,26 +39,19 @@ namespace FruitMod.Commands.FunCommands
         private List<int> values = new List<int>();
         private List<int> dvalues = new List<int>();
         private List<int> dtvalues = new List<int>();
+
         public Embed MyEmbed(ulong id)
         {
             var deck = userData[id];
             var ddeck = userDData[id];
-            var card = deck.Dequeue();
-            var suit = card.suit;
-            var value = card.value;
+            var (card, suit, value) = deck.Dequeue();
             duplicate.TryAdd(new KeyValuePair<string, int>(suit, value), 1);
-            var card2 = deck.Dequeue();
-            var suit2 = card2.suit;
-            var value2 = card2.value;
+            var (card2, suit2, value2) = deck.Dequeue();
             values.Add(value);
             values.Add(value2);
             duplicate.TryAdd(new KeyValuePair<string, int>(suit2, value2), 2);
-            var dcard = ddeck.Dequeue();
-            var dsuit = dcard.suit;
-            var dvalue = dcard.value;
-            var dcard2 = ddeck.Dequeue();
-            var dsuit2 = dcard2.suit;
-            var dvalue2 = dcard2.value;
+            var (dcard, dsuit, dvalue) = ddeck.Dequeue();
+            var (dcard2, dsuit2, dvalue2) = ddeck.Dequeue();
             dvalues.Add(dvalue);
             dtvalues.Add(dvalue);
             dtvalues.Add(dvalue2);
@@ -66,9 +59,9 @@ namespace FruitMod.Commands.FunCommands
             var cards = new EmbedBuilder()
                 .WithColor(Color.LightOrange)
                 .WithTitle("Blackjack!")
-                .AddField("Your cards:", $"({card.card} of {suit}), ({card2.card} of {suit2})")
+                .AddField("Your cards:", $"({card} of {suit}), ({card2} of {suit2})")
                 .AddField("Card total:", $"{values.Sum()}")
-                .AddField("Dealers visible cards:", $"({dcard.card} of {dsuit}), (hidden)")
+                .AddField("Dealers visible cards:", $"({dcard} of {dsuit}), (hidden)")
                 .AddField("Dealers visible total:", $"{dvalues.Sum()}")
                 .AddField("Available choices:", "Hit :punch, Stay :hand_splayed:, Double :v: ")
                 .Build();
@@ -124,7 +117,7 @@ namespace FruitMod.Commands.FunCommands
                 .AddField("Available choices:", "Hit, Stay, Double")
                 .Build();
             await msg.ModifyAsync(x => x.Embed = newembed);
-            if (values.Sum() > 21) { await WinLose(values.Sum(), dtvalues.Sum(), bet); return; }
+            if (values.Sum() > 21 || dtvalues.Sum() >21) { await WinLose(values.Sum(), dtvalues.Sum(), bet); }
             var nextmsg = await ReplyAsync("Do you: hit, stay, or double? You have 10 seconds to choose!", false, null);
             var reply = await NextMessageAsync(true, true, TimeSpan.FromSeconds(10));
             if (reply.Content.Equals("hit", StringComparison.OrdinalIgnoreCase)) { await Hit(newembed, msg, bet, nextmsg); }
@@ -158,7 +151,6 @@ namespace FruitMod.Commands.FunCommands
         public async Task Stay(Embed embed, IUserMessage next, int bet)
         {
             if (dvalues.Sum() < 16) { await DealerHitStay(embed, next, bet); }
-            await next.DeleteAsync();
             await ReplyAsync($"You have chosen to stay at a total of {values.Sum()}! Lets check what the dealer has!");
             var msg = await ReplyAsync($"Come on now.... don't be shy.");
             await Task.Delay(3000);
@@ -203,7 +195,7 @@ namespace FruitMod.Commands.FunCommands
             duplicate.TryAdd(new KeyValuePair<string, int>(suit, value), duplicate.Keys.Count + 1);
             await ReplyAsync($"Are you crazy?? You just doubled your bet {bet}! You have placed {bet * 2} on the line!");
             var newembed = new EmbedBuilder()
-                .WithColor(Discord.Color.LightOrange)
+                .WithColor(Color.LightOrange)
                 .WithTitle("Blackjack!")
                 .AddField("Your cards:", $"{field.Value}, ({value} of {suit})")
                 .AddField("Card total:", $"{values.Sum()}")
@@ -267,8 +259,12 @@ namespace FruitMod.Commands.FunCommands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var userMangos = dbo.UserCurrency[Context.User.Id];
-            if ((win == true) && (userMangos == int.MaxValue)) { await ReplyAsync("You have the max amount of Mangos!"); }
-            if (win == true)
+            if ((win == true) && (userMangos + mangos >= int.MaxValue))
+            {
+                mangos = int.MaxValue - userMangos;
+                await ReplyAsync($"You can't have over {int.MaxValue} Mangos! Giving you the difference.");
+            }
+            else if (win == true)
             {
                 userMangos = userMangos + mangos;
             }
