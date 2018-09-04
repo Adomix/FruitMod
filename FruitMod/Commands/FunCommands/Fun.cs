@@ -34,27 +34,27 @@ namespace FruitMod.Commands.FunCommands
             var odds = _random.Next(1, 11);
             if (bet <= 0) { await ReplyAsync($"Bet must be greater than 0! You have {mangos} Mangos!"); return; }
             if (dbo.UserCurrency[Context.User.Id] < bet) { await ReplyAsync($"You do not have enough Mangos to do this! You have {mangos} Mangos!"); return; }
-            await ReplyAsync("https://media0.giphy.com/media/10bv4HhibS9nZC/giphy.gif");
+            var msg = await ReplyAsync("https://media0.giphy.com/media/10bv4HhibS9nZC/giphy.gif");
             await Task.Delay(4000);
             if (odds <= 5 && decider.Equals("heads", StringComparison.OrdinalIgnoreCase))
             {
                 mangos = mangos + bet * 2;
-                await ReplyAsync($"You won! You have won {bet * 2} Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"You won! You have won {bet * 2} Mangos!");
             }
-            else
+            else if(odds <= 5 && !decider.Equals("heads", StringComparison.OrdinalIgnoreCase))
             {
                 mangos = mangos - bet;
-                await ReplyAsync($"You Lost! You have lost your bet Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"You Lost! You have lost your bet Mangos!");
             }
-            if (odds <= 6 && decider.Equals("tails", StringComparison.OrdinalIgnoreCase))
+            if (odds >= 6 && decider.Equals("tails", StringComparison.OrdinalIgnoreCase))
             {
                 mangos = mangos + bet * 2;
-                await ReplyAsync($"You won! You have won {bet * 2} Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"You won! You have won {bet * 2} Mangos!");
             }
-            else
+            else if(odds >= 6 && !decider.Equals("tails", StringComparison.OrdinalIgnoreCase))
             {
                 mangos = mangos - bet;
-                await ReplyAsync($"You Lost! You have lost your bet Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"You Lost! You have lost your bet Mangos!");
             }
             dbo.UserCurrency[Context.User.Id] = mangos;
             _db.StoreObject(dbo, Context.Guild.Id);
@@ -62,7 +62,7 @@ namespace FruitMod.Commands.FunCommands
 
 
         [Command("roulette", RunMode = RunMode.Async)]
-        [Summary("BANG *dead* **Costs 10 mangos** (Chance to make someone lose 1-10 mangos)")]
+        [Summary("BANG *dead* **Costs 15 mangos** (Chance to make someone lose 1-10 mangos)")]
         public async Task React()
         {
 
@@ -81,12 +81,12 @@ namespace FruitMod.Commands.FunCommands
             }
             var loss = _random.Next(0, 11);
             var mangos = dbo.UserCurrency[Context.User.Id];
-            if (dbo.UserCurrency[Context.User.Id] < 5) { await ReplyAsync($"You do not have enough Mangos to do this! You have {mangos} Mangos!"); return; }
-            mangos -= 5;
+            if (dbo.UserCurrency[Context.User.Id] < 15) { await ReplyAsync($"You do not have enough Mangos to do this! You have {mangos} Mangos!"); return; }
+            mangos -= 15;
             dbo.UserCurrency[Context.User.Id] = mangos;
             dbo.UserCurrency[user.Id] -= loss;
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"User {user.Username} has been shot! The medics charged them {loss} mangos! They have {dbo.UserCurrency[user.Id] -= loss} left!\n You have {mangos} Mangos left!");
+            await ReplyAsync($"User {user.Username} has been shot! The medics charged them {loss} mangos! They have {dbo.UserCurrency[user.Id]} left!\n You have {mangos} Mangos left!");
         }
     }
 }

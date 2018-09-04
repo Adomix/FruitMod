@@ -53,10 +53,19 @@ namespace FruitMod.Commands.AdminCommands
             {
                 if (!dbo.UserCurrency.ContainsKey(user.Id))
                 {
-                    dbo.UserCurrency.TryAdd(user.Id, 0);
+                    if (!user.IsBot)
+                    {
+                        dbo.UserCurrency.TryAdd(user.Id, 0);
+                    }
                 }
-                if (amount >= int.MaxValue) { amount = int.MaxValue - dbo.UserCurrency[user.Id]; }
-                if (dbo.UserCurrency[user.Id] >= int.MaxValue) { amount = int.MaxValue - dbo.UserCurrency[user.Id]; }
+                if (amount >= int.MaxValue)
+                {
+                    amount = int.MaxValue - dbo.UserCurrency[user.Id];
+                }
+                if (dbo.UserCurrency[user.Id] >= int.MaxValue)
+                {
+                    amount = int.MaxValue - dbo.UserCurrency[user.Id];
+                }
                 dbo.UserCurrency[user.Id] = dbo.UserCurrency[user.Id] + amount;
             }
             _db.StoreObject(dbo, Context.Guild.Id);
