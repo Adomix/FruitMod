@@ -28,7 +28,7 @@ namespace FruitMod.Commands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var logChannel = channel != null ? Context.Guild.GetChannel(channel.Id) : null;
-            if (logChannel != null) dbo.LogChannel = logChannel.Id;
+            if (logChannel != null) dbo.Settings.LogChannel = channel.Id;
             _db.StoreObject(dbo, Context.Guild.Id);
             if (channel != null) await ReplyAsync($"Channel {channel.Name} has been set as the log channel!");
         }
@@ -41,7 +41,7 @@ namespace FruitMod.Commands
             if (channel != null)
             {
                 var infoChannel = Context.Guild.GetChannel(channel.Id);
-                dbo.InfoChannel = infoChannel.Id;
+                dbo.Settings.InfoChannel = infoChannel.Id;
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"Channel {channel.Name} has been set as the info channel!");
             }
@@ -52,7 +52,7 @@ namespace FruitMod.Commands
         public async Task SetMute(IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.MuteRole = role.Id;
+            dbo.Settings.MuteRole = role.Id;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"Mute role has been updated to {role.Name}!");
         }
@@ -63,7 +63,7 @@ namespace FruitMod.Commands
         public async Task EnableVkick()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.VoteSys = true;
+            dbo.Settings.VoteSys = true;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("votekick has been successfully enabled!");
         }
@@ -74,7 +74,7 @@ namespace FruitMod.Commands
         public async Task DisableVkick()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.VoteSys = false;
+            dbo.Settings.VoteSys = false;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("votekick has been successfully disabled!");
         }
@@ -85,13 +85,13 @@ namespace FruitMod.Commands
         public async Task EnableLeave()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (dbo.LogChannel == null)
+            if (dbo.Settings.LogChannel == null)
             {
                 await ReplyAsync("You must first set a log channel. Command: setchannel");
                 return;
             }
 
-            dbo.LeaveSys = true;
+            dbo.Settings.LeaveSys = true;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("Leave logging has been successfully enabled!");
         }
@@ -102,7 +102,7 @@ namespace FruitMod.Commands
         public async Task DisableLeave()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.LeaveSys = false;
+            dbo.Settings.LeaveSys = false;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("Leave logging has been successfully disabled!");
         }
@@ -118,10 +118,10 @@ namespace FruitMod.Commands
             }
 
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.Prefix = $"{prefix} ";
+            dbo.Settings.Prefix = $"{prefix} ";
             _db.StoreObject(dbo, Context.Guild.Id);
-            if (dbo.InfoChannel != null)
-                await Context.Guild.GetTextChannel(dbo.InfoChannel.Value).ModifyAsync(x =>
+            if (dbo.Settings.InfoChannel != null)
+                await Context.Guild.GetTextChannel(dbo.Settings.InfoChannel.Value).ModifyAsync(x =>
                     x.Topic = $"Current prefix: {prefix} || More Help: https://discord.gg/NVjPVFX");
             await ReplyAsync($"Prefix has been updated to: {prefix} !");
         }
@@ -132,13 +132,13 @@ namespace FruitMod.Commands
         public async Task DeleteEnabled()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (dbo.LogChannel == null)
+            if (dbo.Settings.LogChannel == null)
             {
                 await ReplyAsync("You must first set a log channel. Command: setlogs");
                 return;
             }
 
-            dbo.DeleteSys = true;
+            dbo.Settings.DeleteSys = true;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("Deleted message logging enabled!");
         }
@@ -149,7 +149,7 @@ namespace FruitMod.Commands
         public async Task DeleteDisabled()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.DeleteSys = false;
+            dbo.Settings.DeleteSys = false;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("Deleted message logging disabled!");
         }
@@ -158,10 +158,7 @@ namespace FruitMod.Commands
         [Summary("Resets all the settings back to default!")]
         public async Task Reset()
         {
-            _db.StoreObject(new GuildObjects
-            {
-                Prefix = "<@467236886616866816> "
-            }, Context.Guild.Id);
+            _db.StoreObject(new GuildObjects { }, Context.Guild.Id);
             await ReplyAsync("Settings have been restored to default!");
         }
     }

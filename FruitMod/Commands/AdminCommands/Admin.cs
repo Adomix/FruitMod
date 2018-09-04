@@ -40,26 +40,26 @@ namespace FruitMod.Commands
         {
             if (user is null) await ReplyAsync("User not found!");
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (dbo.MuteRole is null)
+            if (dbo.Settings.MuteRole is null)
             {
                 await ReplyAsync("You must set a \"mute\" role! (Role without permission to type!) Use: setmute");
                 return;
             }
 
-            var roleId = dbo.MuteRole.Value;
+            var roleId = dbo.Settings.MuteRole.Value;
             if (((SocketGuildUser)user).Roles.Any(x => x.Id == roleId))
             {
                 if (user != null)
                 {
                     await ((SocketGuildUser)user)?.RemoveRoleAsync(Context.Guild.GetRole(roleId));
-                    dbo.MutedUsers.Remove(user.Id);
+                    dbo.UserSettings.MutedUsers.Remove(user.Id);
                     _db.StoreObject(dbo, Context.Guild.Id);
                     await ReplyAsync($"User {user.Mention} has been unmuted!");
                 }
             }
             else
             {
-                dbo.MutedUsers.Add(user.Id);
+                dbo.UserSettings.MutedUsers.Add(user.Id);
                 await ((SocketGuildUser)user).AddRoleAsync(Context.Guild.GetRole(roleId));
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user.Mention} has been muted!");
@@ -113,12 +113,12 @@ namespace FruitMod.Commands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var guildId = Context.Guild.Id;
-            var existinglist = _db.GetById<GuildObjects>(guildId).BlockedUsers ?? new List<ulong>();
+            var existinglist = _db.GetById<GuildObjects>(guildId).UserSettings.BlockedUsers ?? new List<ulong>();
 
             if (existinglist.Contains(user.Id))
             {
                 existinglist.Remove(user.Id);
-                dbo.BlockedUsers = existinglist;
+                dbo.UserSettings.BlockedUsers = existinglist;
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user} has been unblocked!");
                 return;
@@ -126,7 +126,7 @@ namespace FruitMod.Commands
             else
             {
                 existinglist.Add(user.Id);
-                dbo.BlockedUsers = existinglist;
+                dbo.UserSettings.BlockedUsers = existinglist;
                 _db.StoreObject(dbo, Context.Guild.Id);
                 var blockedEmbed = new EmbedBuilder()
                     .WithTitle("User bot blocked!")
@@ -178,7 +178,7 @@ namespace FruitMod.Commands
         public async Task FmRemove()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (Context.Channel.Id == dbo.LogChannel) await ReplyAsync("You may not clear me in my log channel!");
+            if (Context.Channel.Id == dbo.Settings.LogChannel) await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
                           where message.Author.Id == Context.Client.CurrentUser.Id &&

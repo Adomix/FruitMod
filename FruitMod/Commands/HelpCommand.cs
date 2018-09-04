@@ -27,7 +27,7 @@ namespace FruitMod.Commands
         [Summary("Displays all of the commands the bot may provide!")]
         public async Task HelpCommand()
         {
-            var prefix = _db.GetById<GuildObjects>(Context.Guild.Id).Prefix;
+            var prefix = _db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefix;
             var pages = new List<string>();
             var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner"));
             foreach (var module in modules)

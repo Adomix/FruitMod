@@ -43,10 +43,10 @@ namespace FruitMod.Services
                   if (guild != null)
                   {
                       var db = _db.GetById<GuildObjects>(guild.Id);
-                      if (db.BlockedUsers.Contains(message.Author.Id)) return;
+                      if (db.UserSettings.BlockedUsers.Contains(message.Author.Id)) return;
 
                       var argPos = 0;
-                      if (!(message.HasStringPrefix(db.Prefix, ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
+                      if (!(message.HasStringPrefix(db.Settings.Prefix, ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
                       var context = new SocketCommandContext(_client, message);
                       var result = await _commands.ExecuteAsync(context, argPos, _services);
                       var logMessage = new LogMessage(LogSeverity.Error, "CommandHandler", $"{result.ErrorReason}: => \"{messageParam.Content}\"");
@@ -56,7 +56,7 @@ namespace FruitMod.Services
                               await context.Channel.SendMessageAsync("You do not have permission to use this command!");
                               break;
                           case CommandError.BadArgCount:
-                              await context.Channel.SendMessageAsync($"You did not supply the correct amount of arguments for this command. See {db.Prefix}info <command>");
+                              await context.Channel.SendMessageAsync($"You did not supply the correct amount of arguments for this command. See {db.Settings.Prefix}info <command>");
                               break;
                           case CommandError.ObjectNotFound:
                               await context.Channel.SendMessageAsync("Target not found!");

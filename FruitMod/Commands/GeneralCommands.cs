@@ -73,7 +73,7 @@ namespace FruitMod.Commands
                 return;
             }
 
-            if (_db.GetById<GuildObjects>(Context.Guild.Id).VoteSys == false)
+            if (_db.GetById<GuildObjects>(Context.Guild.Id).Settings.VoteSys == false)
             {
                 await ReplyAsync("An administrator needs to turn this feature on!");
             }
@@ -149,7 +149,7 @@ namespace FruitMod.Commands
         [Summary("Displays current guild block list")]
         public async Task ViewBList()
         {
-            var blocklist = _db.GetById<GuildObjects>(Context.Guild.Id).BlockedUsers;
+            var blocklist = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.BlockedUsers;
             if (blocklist == null) return;
             var blockedembed = new EmbedBuilder()
                 .WithColor(Color.Red)

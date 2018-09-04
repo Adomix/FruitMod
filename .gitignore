@@ -6,3 +6,5 @@ SharpLink-master/
 bin/
 
 obj/
+
+\.vs/

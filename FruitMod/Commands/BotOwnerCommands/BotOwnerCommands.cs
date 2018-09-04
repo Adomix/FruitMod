@@ -79,7 +79,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                     Message = Context.Message,
                     Services = _services,
                     HttpClient = _http,
-                    Database = _db
+                    db = _db
                 };
                 var msg = await ReplyAsync("Evaluating....");
                 File.Delete("out.txt");
@@ -145,19 +145,19 @@ namespace FruitMod.Commands.BotOwnerCommands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var guildId = Context.Guild.Id;
-            var existinglist = _db.GetById<GuildObjects>(guildId).BlockedUsers ?? new List<ulong>();
+            var existinglist = _db.GetById<GuildObjects>(guildId).UserSettings.BlockedUsers ?? new List<ulong>();
 
             if (existinglist.Contains(user.Id))
             {
                 existinglist.Remove(user.Id);
-                dbo.BlockedUsers = existinglist;
+                dbo.UserSettings.BlockedUsers = existinglist;
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user} has been unblocked!");
                 return;
             }
 
             existinglist.Add(user.Id);
-            dbo.BlockedUsers = existinglist;
+            dbo.UserSettings.BlockedUsers = existinglist;
             _db.StoreObject(dbo, Context.Guild.Id);
             var blockedEmbed = new EmbedBuilder()
                 .WithTitle("User bot blocked!")
@@ -180,8 +180,8 @@ namespace FruitMod.Commands.BotOwnerCommands
             }
             else
             {
-                if (!input.Contains(_db.GetById<GuildObjects>(Context.Guild.Id).Prefix))
-                    input = $"{_db.GetById<GuildObjects>(Context.Guild.Id).Prefix}{input}";
+                if (!input.Contains(_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefix))
+                    input = $"{_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefix}{input}";
                 var message = await ReplyAsync(input);
                 await message.DeleteAsync();
                 await ReplyAsync($"Sudo => {input}");

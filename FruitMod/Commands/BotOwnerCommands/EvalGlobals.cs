@@ -14,7 +14,7 @@ namespace FruitMod.Commands.BotOwnerCommands
         public SocketUserMessage Message { get; set; }
         public HttpClient HttpClient { get; set; }
         public IServiceProvider Services { get; set; }
-        public DbService Database;
+        public DbService db;
 
         public async Task<IUserMessage> ReplyAsync(string message = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
         {

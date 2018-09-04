@@ -5,6 +5,8 @@ using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Objects;
+using FruitMod.Extensions;
+using System.Linq;
 
 namespace FruitMod.Services
 {
@@ -40,16 +42,20 @@ namespace FruitMod.Services
             else
                 return;
             var dbo = _db.GetById<GuildObjects>(chan?.Guild.Id);
-            if (dbo.DeleteSys) await Delete(dbo, oldmsg, chan);
+            if (dbo.Settings.DeleteSys) await Delete(dbo, oldmsg, chan);
         }
 
         private Task Delete(GuildObjects dbo, Cacheable<IMessage, ulong> oldmsg, ITextChannel channel)
         {
             Task.Run(async () =>
             {
+                string attachment;
                 _db.StoreObject(dbo, channel.Guild.Id);
                 var msg = await oldmsg.GetOrDownloadAsync();
-                if (dbo.LogChannel == null)
+                if (msg.HasAttachments()) { attachment = msg.Attachments.FirstOrDefault().Url; }
+                else attachment = null;
+                if (msg.Author.Username.Equals("FruitMod")) return Task.CompletedTask;
+                if (dbo.Settings.LogChannel == null)
                 {
                     var x = await channel.Guild.GetOwnerAsync();
                     await x.SendMessageAsync("Please set up a log channel to use logging! prefix setlogs logchannel");
@@ -58,12 +64,12 @@ namespace FruitMod.Services
                 {
                     var embed = new EmbedBuilder()
                     .WithTitle("A message has been deleted!")
-                    .AddField($"User's {msg.Author} message has been deleted!", $"```ini\n[{msg.Content}]\n```")
+                    .AddField($"User's {msg.Author} message has been deleted!", $"```ini\n[{msg.Content}]\nAttachment:{attachment ?? "No attachment"}\n```")
                     .AddField($"From channel:", $"```ini\n[{msg.Channel}]\n```")
                     .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
                     .WithColor(Color.Red)
                     .Build();
-                    if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.LogChannel.Value) is SocketTextChannel newChannel)
+                    if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.Settings.LogChannel.Value) is SocketTextChannel newChannel)
                         await newChannel.SendMessageAsync(string.Empty, false, embed);
                 }
                 return Task.CompletedTask;
@@ -80,10 +86,10 @@ namespace FruitMod.Services
             {
                 if (_db.GetById<GuildObjects>(user.Guild.Id) == null) return Task.CompletedTask;
                 var dbo = _db.GetById<GuildObjects>(user.Guild.Id);
-                if (dbo.LeaveSys == false) return Task.CompletedTask;
-                if (dbo.LogChannel != null)
+                if (dbo.Settings.LeaveSys == false) return Task.CompletedTask;
+                if (dbo.Settings.LogChannel != null)
                 {
-                    var logChannel = _db.GetById<GuildObjects>(user.Guild.Id).LogChannel;
+                    var logChannel = _db.GetById<GuildObjects>(user.Guild.Id).Settings.LogChannel;
                     if (logChannel != null)
                     {
                         var channel = user.Guild.GetChannel(logChannel.Value);
@@ -91,7 +97,7 @@ namespace FruitMod.Services
                     }
                 }
 
-                return _db.GetById<GuildObjects>(user.Guild.Id).LeaveSys == false
+                return _db.GetById<GuildObjects>(user.Guild.Id).Settings.LeaveSys == false
                     ? Task.CompletedTask
                     : _log.Log(message);
             });
@@ -102,9 +108,9 @@ namespace FruitMod.Services
         private Task CheckMuted(SocketGuildUser user)
         {
             var dbo = _db.GetById<GuildObjects>(user.Guild.Id);
-            if (dbo.MutedUsers.Contains(user.Id))
-                if (dbo.MuteRole != null)
-                    user.AddRoleAsync(user.Guild.GetRole(dbo.MuteRole.Value));
+            if (dbo.UserSettings.MutedUsers.Contains(user.Id))
+                if (dbo.Settings.MuteRole != null)
+                    user.AddRoleAsync(user.Guild.GetRole(dbo.Settings.MuteRole.Value));
             return Task.CompletedTask;
         }
 

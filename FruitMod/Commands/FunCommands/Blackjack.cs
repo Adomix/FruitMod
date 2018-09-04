@@ -163,7 +163,6 @@ namespace FruitMod.Commands.FunCommands
             var msg = await ReplyAsync($"Come on now.... don't be shy.");
             await Task.Delay(3000);
             await msg.ModifyAsync(x => x.Content = $"Aha! The dealer has a total of {dtvalues.Sum()}!");
-            await WinLose(values.Sum(), dtvalues.Sum(), bet);
         }
         public async Task DealerHitStay(Embed embed, IUserMessage next, int bet)
         {
@@ -240,7 +239,7 @@ namespace FruitMod.Commands.FunCommands
             else if (player > 21 && dealer > 21)
             {
                 await ReplyAsync("Push! You both busted!");
-                return;
+                await MangosUpdate(win, userMangos);
             }
             else if (player <= 21 && player > dealer)
             {
@@ -252,12 +251,12 @@ namespace FruitMod.Commands.FunCommands
                 await ReplyAsync($"You lost! You have lost {bet} Mangos!");
                 win = false;
             }
-            if (player == 21 && dealer < 21)
+            else if (player == 21 && dealer < 21)
             {
                 await ReplyAsync($"You won! Blackjack!!! You won {mangos * 2} Mangos!");
                 win = true;
             }
-            if (player == 21 && dealer == 21)
+            else if (player == 21 && dealer == 21)
             {
                 await ReplyAsync("Push! You keep your Mangos!");
             }
