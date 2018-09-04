@@ -53,10 +53,7 @@ namespace FruitMod.Commands.AdminCommands
             {
                 if (!dbo.UserCurrency.ContainsKey(user.Id))
                 {
-                    if (!user.IsBot)
-                    {
-                        dbo.UserCurrency.TryAdd(user.Id, 0);
-                    }
+                    dbo.UserCurrency.TryAdd(user.Id, 0);
                 }
                 if (amount >= int.MaxValue)
                 {
@@ -99,6 +96,22 @@ namespace FruitMod.Commands.AdminCommands
             dbo.UserCurrency[user.Id] = 0;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"User's {user} Mangos have been eaten!");
+        }
+
+        [Command("mangorb", RunMode = RunMode.Async)]
+        [Summary("Removes all bots added during mango admin operations")]
+        public async Task Mangorb()
+        {
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            var y = new ConcurrentDictionary<ulong, int>();
+            foreach (var x in dbo.UserCurrency)
+            {
+                var user = Context.Guild.GetUser(x.Key);
+                if (!user.IsBot) y.TryAdd(x.Key, x.Value);
+            }
+            dbo.UserCurrency = y;
+            _db.StoreObject(dbo, Context.Guild.Id);
+            await ReplyAsync("All bots removed!");
         }
     }
 }

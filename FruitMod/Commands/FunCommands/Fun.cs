@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using FruitMod.Database;
 using FruitMod.Objects;
 using Discord.Addons.Interactive;
+using FruitMod.Interactive.Criteria;
 
 namespace FruitMod.Commands.FunCommands
 {
@@ -94,7 +95,7 @@ namespace FruitMod.Commands.FunCommands
 
         [Command("challenge", RunMode = RunMode.Async)]
         [Summary("Challenges another user! Usage: challenge name amount")]
-        public async Task Challenge(IUser user, int bet)
+        public async Task Challenge(int bet, [Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var mangos = dbo.UserCurrency[Context.User.Id];
@@ -103,7 +104,11 @@ namespace FruitMod.Commands.FunCommands
             var p1 = Context.User as SocketGuildUser;
             var p2 = user as SocketGuildUser;
 
-            if(p1 == p2)
+            var criteria = new Criteria<SocketMessage>()
+                .AddCriterion(new EnsureSourceChannelCriterion())
+                .AddCriterion(new EnsureFromUserCriterion(p2.Id));
+
+            if (p1 == p2)
             {
                 await ReplyAsync("You can't bet against yourself!");
                 return;
@@ -119,19 +124,19 @@ namespace FruitMod.Commands.FunCommands
 
             var odds = _random.Next(1, 11);
             var msg = await ReplyAsync($"Player 1 {p1.Nickname ?? p1.Username} has challenged you {p2.Mention} to a duel for {bet} Mangos! Do you accept? y/n (You have 10 seconds)");
-            var reply = await NextMessageAsync(false, true, TimeSpan.FromSeconds(10));
-            if (reply.Content.Equals("n", StringComparison.OrdinalIgnoreCase))
+            var reply = await Interactive.NextMessageAsync(Context, criteria, TimeSpan.FromSeconds(10));
+            if (reply.Content.Equals("n", StringComparison.OrdinalIgnoreCase) || reply.Content.Equals("n", StringComparison.OrdinalIgnoreCase))
             {
                 await msg.ModifyAsync(x => x.Content = "Player 2 has declined!");
                 return;
             }
-            else if(reply.Content.Equals("y", StringComparison.OrdinalIgnoreCase))
+            else if (reply.Content.Equals("y", StringComparison.OrdinalIgnoreCase) || reply.Content.Equals("yes", StringComparison.OrdinalIgnoreCase))
             {
                 await msg.ModifyAsync(x => x.Content = "Hazah! Player 2 accepted! I am suiting up for war!");
                 await Task.Delay(2000);
                 await msg.ModifyAsync(x => x.Content = "https://www.speakgif.com/wp-content/uploads/2016/07/indiana-jones-duel-animated-gif.gif");
                 await Task.Delay(8000);
-                if(odds >= 6)
+                if (odds >= 6)
                 {
                     winner = p1;
                     await msg.ModifyAsync(x => x.Content = $"{p1.Nickname ?? p1.Username} humilitated {p2.Nickname ?? p2.Username} and took their mangos!");
@@ -140,7 +145,7 @@ namespace FruitMod.Commands.FunCommands
                     _db.StoreObject(dbo, Context.Guild.Id);
                     await ReplyAsync($"{winner.Nickname ?? winner.Username} congrats on the victory! You now have {dbo.UserCurrency[winner.Id]} Mangos!");
                 }
-                else if(odds <= 5)
+                else if (odds <= 5)
                 {
                     winner = p2;
                     await msg.ModifyAsync(x => x.Content = $"{p2.Nickname ?? p2.Username} humilitated {p1.Nickname ?? p1.Username} and took their mangos!");
@@ -150,7 +155,7 @@ namespace FruitMod.Commands.FunCommands
                     await ReplyAsync($"{winner.Nickname ?? winner.Username} congrats on the victory! You now have {dbo.UserCurrency[winner.Id]} Mangos!");
                 }
             }
-            else if (!(reply.Content.Equals("y", StringComparison.OrdinalIgnoreCase) || reply.Content.Equals("y", StringComparison.OrdinalIgnoreCase)))
+            else if (!(reply.Content.Equals("y", StringComparison.OrdinalIgnoreCase) || reply.Content.Equals("n", StringComparison.OrdinalIgnoreCase) || reply.Content.Equals("yes", StringComparison.OrdinalIgnoreCase) || reply.Content.Equals("no", StringComparison.OrdinalIgnoreCase)))
             {
                 await msg.ModifyAsync(x => x.Content = "That is not a valid option. Declining. Please use y or n next time.");
                 return;
