@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Database;
+using FruitMod.Extensions;
 using FruitMod.Objects;
 using Humanizer;
 
@@ -89,11 +90,8 @@ namespace FruitMod.Commands
             {
                 await ReplyAsync(
                     $"RIP! {Context.User.Username} has initiated a votekick against {user.Username} for {reason}! You have 60 seconds to vote! Vote opens in 2 seconds!");
-                //await Task.Delay(2000);
                 var msg = await ReplyAsync("How to vote: Click the check for yes, the X for no!");
-                await msg.AddReactionAsync(new Emoji("✅"));
-                //await Task.Delay(2000);
-                await msg.AddReactionAsync(new Emoji("❌"));
+                await msg.AddReactionsAsync(new Emoji[] { new Emoji("✅"), new Emoji("❌") });
                 await Task.Delay(60000);
                 var mess = await Context.Channel.GetMessageAsync(msg.Id);
                 var message = mess as IUserMessage;
@@ -128,27 +126,43 @@ namespace FruitMod.Commands
         [Summary("Gathers info on a user, usage: userinfo <user>")]
         public async Task UserInfo([Remainder] IUser user)
         {
-            var uroles = Context.Guild.GetUser(user.Id).Roles.OrderBy(x => x.Position);
-            var roles = string.Join(", ", uroles);
-            var fixedroles = roles.Replace("@", string.Empty);
-            var nickname = Context.Guild.GetUser(user.Id).Nickname;
-            var game = user.Activity?.Name;
+            if (!(user is SocketGuildUser suser)) return;
 
-            if (Context.Guild.GetUser(user.Id).Nickname == null) nickname = "No nickname";
+            var color = suser.Roles.Last().Color;
+            if (suser.Roles.Last().Color == Color.Default) { color = suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color; }
 
-            if (user.Activity == null) game = "No game";
+            var perms = string.Join(", ", suser.GuildPermissions.ToList());
+            if (suser.GuildPermissions.ToList().Contains(GuildPermission.Administrator)) perms = "All permissions!";
+            if (suser.GuildPermissions.ToList().Count > 5) perms = $"`{string.Join(", ", suser.GuildPermissions.ToList())}`";
+
+            var roles = string.Join(", ", suser.Roles.OrderBy(x => x.Name));
+            if (suser.Roles.ToList().Select(x => x.Name).Count() > 5) roles = $"`{string.Join(", ", suser.Roles.OrderBy(x => x.Name))}`";
 
             var infoembed = new EmbedBuilder()
-                .WithColor((user as SocketGuildUser).Roles.Last().Color)
-                .WithTitle($"User: {user.Username}")
-                .WithThumbnailUrl(user.GetAvatarUrl())
-                .AddField("Nickname: ", nickname, true)
-                .AddField("ID: ", user.Id, true)
-                .AddField("Created: ", user.CreatedAt, true)
-                .AddField("Joined: ", Context.Guild.GetUser(user.Id).JoinedAt, true)
-                .AddField("Roles ", fixedroles, true)
-                .AddField("Playing: ", game, true)
-                .WithFooter($"Processed on: {DateTime.UtcNow:MM/dd/yyy hh:mm:ss}")
+
+                .WithColor(color)
+                .WithTitle($"User: {suser.Username}")
+                .WithThumbnailUrl(suser.GetAvatarUrl())
+                .WithCurrentTimestamp()
+
+                .AddField("Nickname:", suser.Nickname ?? "No nickname", true)
+                .AddField("ID:", suser.Id, true)
+
+                .AddField("Discriminator:", suser.Discriminator, true)
+                .AddField("Bot:", suser.IsBot, true)
+
+                .AddField("Created:", suser.CreatedAt.Date, true)
+                .AddField("Joined:", suser.JoinedAt.Value.Date, true)
+
+                .AddField("Highest Role:", suser.Roles.Last(), true)
+                .AddField("User Hierarchy:", $"{((suser.Hierarchy == int.MaxValue) ? "Guild Owner" : $"{ suser.Hierarchy}")}", true)
+
+                .AddField("All Roles:", roles)
+
+                .AddField("Permissions:", perms)
+
+                .AddField("Playing:", suser.Activity?.Name ?? "Not currently playing anything", true)
+
                 .Build();
             await Context.Channel.SendMessageAsync(string.Empty, false, infoembed);
         }
@@ -163,7 +177,7 @@ namespace FruitMod.Commands
                 .WithColor(Color.Red)
                 .WithTitle("Block List")
                 .AddField("Blocked IDs: ", string.Join(", ", blocklist))
-                .WithFooter($"Processed on: {DateTime.UtcNow}")
+                .WithCurrentTimestamp()
                 .Build();
             await Context.Channel.SendMessageAsync(string.Empty, false, blockedembed);
         }

@@ -8,12 +8,12 @@ using Newtonsoft.Json.Linq;
 
 namespace FruitMod.Commands.FunCommands.ApiCommands
 {
-    public class ApiCommands : ModuleBase<SocketCommandContext>
+    public class API : ModuleBase<SocketCommandContext>
     {
         private readonly HttpClient _http;
         private readonly Random _randomizer = new Random();
 
-        public ApiCommands(HttpClient http)
+        public API(HttpClient http)
         {
             _http = http;
         }
