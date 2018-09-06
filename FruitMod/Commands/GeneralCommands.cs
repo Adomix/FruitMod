@@ -15,16 +15,24 @@ namespace FruitMod.Commands
     public class General : ModuleBase<SocketCommandContext>
     {
         private readonly DiscordSocketClient _client;
+        private readonly CommandService _cmd;
         private readonly DbService _db;
 
-        public General(CommandService commandService, DiscordSocketClient client, DbService db)
+        public General(DiscordSocketClient client, CommandService cmd, DbService db)
         {
-            CommandService = commandService;
             _client = client;
+            _cmd = cmd;
             _db = db;
         }
 
-        private CommandService CommandService { get; }
+        [Command("info")]
+        [Summary("Displays the bot's information")]
+        public async Task Info()
+        {
+            var botInfo = await Context.Client.GetApplicationInfoAsync();
+            var time = DateTime.Now - Process.GetCurrentProcess().StartTime;
+            await ReplyAsync($"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
+        }
 
         [Command("discord")]
         [Summary("provides the dev's discord")]
@@ -37,7 +45,7 @@ namespace FruitMod.Commands
         [Summary("lists all the modules")]
         public async Task Modules()
         {
-            var info = CommandService.Modules.OrderBy(x => x.Name);
+            var info = _cmd.Modules.OrderBy(x => x.Name);
             var mods = info.Select(x => x.Name);
             var modules = string.Join(", ", mods);
             await ReplyAsync($"Modules: {modules}");
