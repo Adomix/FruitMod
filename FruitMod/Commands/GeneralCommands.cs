@@ -107,14 +107,12 @@ namespace FruitMod.Commands
                         $"Kick details: Voted off by {Context.User.Username} for the reason {reason}");
                     await Context.Guild.GetUser(user.Id).KickAsync();
                 }
-
-                if (check < xemj)
+                else if (check < xemj)
                 {
                     await message.DeleteAsync();
                     await ReplyAsync($"{user} tonight, you are not being voted off the island.");
                 }
-
-                if (check == xemj)
+                else if (check == xemj)
                 {
                     if (message != null) await message.DeleteAsync();
                     await ReplyAsync($"{user}, the tribe is inconclusive, enjoy your stay.");
@@ -128,9 +126,6 @@ namespace FruitMod.Commands
         {
             if (!(user is SocketGuildUser suser)) return;
 
-            var color = suser.Roles.Last().Color;
-            if (suser.Roles.Last().Color == Color.Default) { color = suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color; }
-
             var perms = string.Join(", ", suser.GuildPermissions.ToList());
             if (suser.GuildPermissions.ToList().Contains(GuildPermission.Administrator)) perms = "All permissions!";
             if (suser.GuildPermissions.ToList().Count > 5) perms = $"`{string.Join(", ", suser.GuildPermissions.ToList())}`";
@@ -140,7 +135,7 @@ namespace FruitMod.Commands
 
             var infoembed = new EmbedBuilder()
 
-                .WithColor(color)
+                .WithColor(suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color)
                 .WithTitle($"User: {suser.Username}")
                 .WithThumbnailUrl(suser.GetAvatarUrl())
                 .WithCurrentTimestamp()
@@ -172,7 +167,11 @@ namespace FruitMod.Commands
         public async Task ViewBList()
         {
             var blocklist = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.BlockedUsers;
-            if (blocklist == null) return;
+            if (blocklist == null)
+            {
+                await ReplyAsync("Nobody is blocked in this guild!");
+                return;
+            }
             var blockedembed = new EmbedBuilder()
                 .WithColor(Color.Red)
                 .WithTitle("Block List")
