@@ -69,7 +69,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                 var embed = new EmbedBuilder();
                 var sopts = ScriptOptions.Default;
                 var oldWriter = Console.Out;
-                IEnumerable<string> systems = new[] { "System", "System.Collections.Generic", "System.Linq", "System.Text", "System.Threading.Tasks", "System.Diagnostics","Discord","Discord.Commands","Discord.WebSocket" };
+                IEnumerable<string> systems = new[] { "System", "System.Collections.Generic", "System.Linq", "System.Text", "System.Threading.Tasks", "System.Diagnostics", "Discord", "Discord.Commands", "Discord.WebSocket" };
                 var imports = _init.Namespaces.Concat(systems);
                 sopts = sopts.WithImports(imports);
                 sopts = sopts.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(x => !x.IsDynamic && !string.IsNullOrWhiteSpace(x.Location)));
@@ -180,8 +180,8 @@ namespace FruitMod.Commands.BotOwnerCommands
             }
             else
             {
-                if (!input.Contains(_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefix))
-                    input = $"{_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefix}{input}";
+                if (!_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes.Any(x => input.Contains(x)))
+                    input = $"{_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes[0]}{input}";
                 var message = await ReplyAsync(input);
                 await message.DeleteAsync();
                 await ReplyAsync($"Sudo => {input}");

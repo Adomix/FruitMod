@@ -27,7 +27,7 @@ namespace FruitMod.Commands
         [Summary("Displays all of the commands the bot may provide!")]
         public async Task HelpCommand()
         {
-            var prefix = _db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefix;
+            var prefixes = string.Join(", ",_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes);
             var pages = new List<string>();
             var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner"));
             foreach (var module in modules)
@@ -56,7 +56,7 @@ namespace FruitMod.Commands
                 Options = new PaginatedAppearanceOptions { DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60)},
                 Pages = pages,
                 Author = new EmbedAuthorBuilder() { Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl() },
-                Title = $"Commands you may use || Current Prefix: {prefix}"
+                Title = $"Commands you may use || Current Prefix(es): {prefixes}"
             };
             await PagedReplyAsync(msg);
         }

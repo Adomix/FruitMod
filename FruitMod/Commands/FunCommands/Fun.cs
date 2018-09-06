@@ -20,7 +20,7 @@ namespace FruitMod.Commands.FunCommands
         private static Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
 
         public Fun(Random random, DbService db)
-        {
+        { 
             _random = random;
             _db = db;
         }

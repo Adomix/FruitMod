@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Objects;
-using FruitMod.Objects.DataClasses;
 
 namespace FruitMod.Services
 {
@@ -34,11 +32,9 @@ namespace FruitMod.Services
             {
                 var dbo = _db.GetById<GuildObjects>(guild.Id);
                 if (dbo.Settings.InfoChannel == null) return;
-                var prefix = dbo.Settings.Prefix;
-                if (dbo.Settings.Prefix == $"{_client.CurrentUser.Mention}") prefix = "@FruitMod#2261";
                 await guild.GetTextChannel(dbo.Settings.InfoChannel.Value).ModifyAsync(x =>
                     x.Topic =
-                        $"FruitMod! Made by: Maͥnͣgͫo#4298 || Current Prefix: {prefix} || More Help: https://discord.gg/NVjPVFX");
+                        $"FruitMod! Made by: Maͥnͣgͫo#4298 || Current Prefix(es): {string.Join(", ", dbo.Settings.Prefixes)} || More Help: https://discord.gg/NVjPVFX");
             });
             return Task.CompletedTask;
         }
@@ -54,7 +50,7 @@ namespace FruitMod.Services
                     if (dbo == null)
                         _db.StoreObject(new GuildObjects
                         {
-                            
+
                         }, guild.Id);
                     else
                     {

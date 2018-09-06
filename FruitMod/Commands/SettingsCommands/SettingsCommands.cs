@@ -6,17 +6,17 @@ using FruitMod.Database;
 using FruitMod.Objects;
 using FruitMod.Preconditions;
 
-namespace FruitMod.Commands
+namespace FruitMod.SettingCommands
 {
-    [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.BanMembers, GuildPermission.KickMembers,GuildPermission.ManageMessages,
+    [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.BanMembers, GuildPermission.KickMembers, GuildPermission.ManageMessages,
                            GuildPermission.ManageChannels, Group = "settings")]
     [RequireOwner(Group = "settings")]
-    public class Settings : ModuleBase<SocketCommandContext>
+    public class CustomSettings : ModuleBase<SocketCommandContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly DbService _db;
 
-        public Settings(DiscordSocketClient client, DbService db)
+        public CustomSettings(DiscordSocketClient client, DbService db)
         {
             _client = client;
             _db = db;
@@ -68,17 +68,6 @@ namespace FruitMod.Commands
             await ReplyAsync("votekick has been successfully enabled!");
         }
 
-        [Command("dvkick", RunMode = RunMode.Async)]
-        [Alias("disable votekick")]
-        [Summary("Disables votekicking")]
-        public async Task DisableVkick()
-        {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.Settings.VoteSys = false;
-            _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync("votekick has been successfully disabled!");
-        }
-
         [Command("eleave", RunMode = RunMode.Async)]
         [Alias("enable leave")]
         [Summary("Enables leave logs")]
@@ -90,40 +79,9 @@ namespace FruitMod.Commands
                 await ReplyAsync("You must first set a log channel. Command: setchannel");
                 return;
             }
-
             dbo.Settings.LeaveSys = true;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("Leave logging has been successfully enabled!");
-        }
-
-        [Command("dleave", RunMode = RunMode.Async)]
-        [Alias("disable leave")]
-        [Summary("Disables leave logs")]
-        public async Task DisableLeave()
-        {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.Settings.LeaveSys = false;
-            _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync("Leave logging has been successfully disabled!");
-        }
-
-        [Command("prefix")]
-        [Summary("Sets the custom prefix, default @bot")]
-        public async Task Prefix([Remainder] string prefix = null)
-        {
-            if (prefix == null)
-            {
-                prefix = "_client.CurrentUser.Mention()";
-                await ReplyAsync($"Prefix has been updated to: {_client.CurrentUser.Mention} !");
-            }
-
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.Settings.Prefix = $"{prefix} ";
-            _db.StoreObject(dbo, Context.Guild.Id);
-            if (dbo.Settings.InfoChannel != null)
-                await Context.Guild.GetTextChannel(dbo.Settings.InfoChannel.Value).ModifyAsync(x =>
-                    x.Topic = $"Current prefix: {prefix} || More Help: https://discord.gg/NVjPVFX");
-            await ReplyAsync($"Prefix has been updated to: {prefix} !");
         }
 
         [Command("ed")]
@@ -143,8 +101,27 @@ namespace FruitMod.Commands
             await ReplyAsync("Deleted message logging enabled!");
         }
 
-        [Command("dd")]
-        [Alias("disable delete")]
+        [Command("disable votekick", RunMode = RunMode.Async), Alias("dvk")]
+        [Summary("Disables votekicking")]
+        public async Task DisableVkick()
+        {
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            dbo.Settings.VoteSys = false;
+            _db.StoreObject(dbo, Context.Guild.Id);
+            await ReplyAsync("votekick has been successfully disabled!");
+        }
+
+        [Command("disable leave", RunMode = RunMode.Async), Alias("dleave")]
+        [Summary("Disables leave logs")]
+        public async Task DisableLeave()
+        {
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            dbo.Settings.LeaveSys = false;
+            _db.StoreObject(dbo, Context.Guild.Id);
+            await ReplyAsync("Leave logging has been successfully disabled!");
+        }
+
+        [Command("disable delete"), Alias("ddel")]
         [Summary("disable deleted message logging")]
         public async Task DeleteDisabled()
         {
@@ -160,6 +137,53 @@ namespace FruitMod.Commands
         {
             _db.StoreObject(new GuildObjects { }, Context.Guild.Id);
             await ReplyAsync("Settings have been restored to default!");
+        }
+
+        [Group("prefix")]
+        public class Prefixes : ModuleBase<SocketCommandContext>
+        {
+            private readonly DiscordSocketClient _client;
+            private readonly DbService _db;
+
+            public Prefixes(DiscordSocketClient client, DbService db)
+            {
+                _client = client;
+                _db = db;
+            }
+
+            [Command("add")]
+            [Summary("adds a custom prefix, default @bot")]
+            public async Task PrefixAdd([Remainder] string prefix)
+            {
+                var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+                dbo.Settings.Prefixes.Add(prefix+" ");
+                _db.StoreObject(dbo, Context.Guild.Id);
+                if (dbo.Settings.InfoChannel != null)
+                    await Context.Guild.GetTextChannel(dbo.Settings.InfoChannel.Value).ModifyAsync(x =>
+                        x.Topic = $"Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)} || More Help: https://discord.gg/NVjPVFX");
+                await ReplyAsync($"Prefix {prefix} has been added! Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)}");
+            }
+
+            [Command("remove")]
+            [Summary("adds a custom prefix, default @bot")]
+            public async Task PrefixRemove([Remainder] string prefix)
+            {
+                var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+                dbo.Settings.Prefixes.Remove(prefix+" ");
+                _db.StoreObject(dbo, Context.Guild.Id);
+                if (dbo.Settings.InfoChannel != null)
+                    await Context.Guild.GetTextChannel(dbo.Settings.InfoChannel.Value).ModifyAsync(x =>
+                        x.Topic = $"Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)} || More Help: https://discord.gg/NVjPVFX");
+                await ReplyAsync($"Prefix {prefix} has been removed! Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)}");
+            }
+
+            [Command]
+            [Summary("adds a custom prefix, default @bot")]
+            public async Task PrefixList()
+            {
+                var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+                await ReplyAsync($"Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)}");
+            }
         }
     }
 }
