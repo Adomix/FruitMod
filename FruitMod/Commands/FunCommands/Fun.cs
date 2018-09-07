@@ -9,6 +9,9 @@ using FruitMod.Database;
 using FruitMod.Objects;
 using Discord.Addons.Interactive;
 using FruitMod.Interactive.Criteria;
+using Newtonsoft.Json.Linq;
+using System.Net.Http;
+using System.Configuration;
 
 namespace FruitMod.Commands.FunCommands
 {
@@ -17,12 +20,14 @@ namespace FruitMod.Commands.FunCommands
     {
         private readonly Random _random;
         private readonly DbService _db;
+        private readonly HttpClient _http;
         private static Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
 
-        public Fun(Random random, DbService db)
+        public Fun(Random random, DbService db, HttpClient http)
         { 
             _random = random;
             _db = db;
+            _http = http;
         }
 
         [Command("flip", RunMode = RunMode.Async), Alias("coin flip")]
@@ -160,6 +165,49 @@ namespace FruitMod.Commands.FunCommands
                 await msg.ModifyAsync(x => x.Content = "That is not a valid option. Declining. Please use y or n next time.");
                 return;
             }
+        }
+
+        [Command("cat", RunMode = RunMode.Async)]
+        [Alias("cfact")]
+        [Summary("gives a cat fact!")]
+        public async Task CFact()
+        {
+            var jResponse =
+                JObject.Parse(await _http.GetStringAsync("https://cat-fact.herokuapp.com/facts/random?amount=1"));
+            await ReplyAsync(jResponse["text"].ToString());
+        }
+
+        [Command("ud", RunMode = RunMode.Async)]
+        [Summary("Gives an urban dictionary definition")]
+        public async Task Ud([Remainder] string word)
+        {
+            var jResponse =
+                JObject.Parse(await _http.GetStringAsync("http://api.urbandictionary.com/v0/define?term={word}"));
+            await ReplyAsync(jResponse["list"][1]["definition"].ToString());
+        }
+
+        [Command("wa", RunMode = RunMode.Async)]
+        [Alias("wolfram")]
+        [Summary("Returns a wolfram alpha output")]
+        public async Task Wa([Remainder] string input)
+        {
+            var jResponse = JObject.Parse(await _http.GetStringAsync(
+                $"https://api.wolframalpha.com/v2/query?input={input}&format=image,plaintext&output=JSON&appid=" +
+                ConfigurationManager.AppSettings["wolfram"]));
+            await ReplyAsync(jResponse["queryresult"]["pods"][2]["subpods"][0]["plaintext"].ToString());
+        }
+
+        [Command("tti", RunMode = RunMode.Async)]
+        [Summary("Turns text into an image")]
+        public async Task Tti([Remainder] string text)
+        {
+            _http.DefaultRequestHeaders.Add("X-Mashape-Key", ConfigurationManager.AppSettings["mashape"]);
+            var color = new List<string> { "FF0000", "00A6FF", "AA00FF", "26C200" };
+            var colorn = _random.Next(color.Count + 1);
+            var cpick = color[colorn];
+            var response = await _http.GetStringAsync(
+                $"https://img4me.p.mashape.com/?bcolor=%23{cpick}&fcolor=000000&font=trebuchet&size=12&text={text}&type=png");
+            await ReplyAsync(response);
         }
     }
 }
