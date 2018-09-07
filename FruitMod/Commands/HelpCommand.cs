@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
+using Discord.WebSocket;
 using FruitMod.Database;
 using FruitMod.Interactive.Paginator;
 using FruitMod.Objects;
@@ -69,6 +70,15 @@ namespace FruitMod.Commands
             if (cmd?.Summary == null) await ReplyAsync($"Command {command} has no further explanation!");
 
             await ReplyAsync($"{command} => {cmd?.Summary}");
+        }
+
+        [Command("git")]
+        [Summary("Shows the latest github push")]
+        public async Task Git()
+        {
+            var channel = ((Context.Client.GetChannel(487463564592939030) as SocketTextChannel));
+            var msg = (await channel.GetMessagesAsync(5).FlattenAsync()).FirstOrDefault();
+            await ReplyAsync(msg.Content ?? "No pushes to show!");
         }
     }
 }
