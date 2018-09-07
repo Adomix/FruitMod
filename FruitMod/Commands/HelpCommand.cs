@@ -77,7 +77,7 @@ namespace FruitMod.Commands
         public async Task Git()
         {
             var channel = ((Context.Client.GetChannel(487463564592939030) as SocketTextChannel));
-            var msg = (await channel.GetMessagesAsync(5).FlattenAsync()).FirstOrDefault();
+            var msg = (await channel.GetMessagesAsync(1).FlattenAsync()).FirstOrDefault();
             await ReplyAsync(string.Empty, false, (msg.Embeds.FirstOrDefault() as Embed));
         }
     }
