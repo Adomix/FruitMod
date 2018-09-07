@@ -78,7 +78,7 @@ namespace FruitMod.Commands
         {
             var channel = ((Context.Client.GetChannel(487463564592939030) as SocketTextChannel));
             var msg = (await channel.GetMessagesAsync(5).FlattenAsync()).FirstOrDefault();
-            await ReplyAsync(msg.Content ?? "No pushes to show!");
+            await ReplyAsync(string.Empty, false, (msg.Embeds.FirstOrDefault() as Embed));
         }
     }
 }
