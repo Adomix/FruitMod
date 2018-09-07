@@ -7,6 +7,7 @@ using FruitMod.Database;
 using FruitMod.Objects;
 using FruitMod.Extensions;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace FruitMod.Services
 {
@@ -17,6 +18,9 @@ namespace FruitMod.Services
         private readonly CommandHandlingService _commands;
         private readonly DbService _db;
         private readonly LoggingService _log;
+
+        public SortedDictionary<(int, ulong), SocketUserMessage> delmsgs { get; set; } = new SortedDictionary<(int, ulong), SocketUserMessage>();
+        private static int setter = 0;
 
         public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
             LoggingService log)
@@ -42,7 +46,7 @@ namespace FruitMod.Services
             else
                 return;
             var dbo = _db.GetById<GuildObjects>(chan?.Guild.Id);
-            if (dbo.Settings.DeleteSys) await Delete(dbo, oldmsg, chan);
+            await Delete(dbo, oldmsg, chan);
         }
 
         private Task Delete(GuildObjects dbo, Cacheable<IMessage, ulong> oldmsg, ITextChannel channel)
@@ -50,11 +54,31 @@ namespace FruitMod.Services
             Task.Run(async () =>
             {
                 string attachment;
+
                 _db.StoreObject(dbo, channel.Guild.Id);
+
                 var msg = await oldmsg.GetOrDownloadAsync();
-                if (msg.HasAttachments()) { attachment = msg.Attachments.FirstOrDefault().Url; }
-                else attachment = null;
-                if (msg.Author.Username.Equals("FruitMod")) return Task.CompletedTask;
+
+                if (!(msg is SocketUserMessage umsg)) return Task.CompletedTask;
+
+                if(delmsgs.Count > 100)
+                {
+                    delmsgs.OrderByDescending(x => x.Key.Item1);
+                    delmsgs.RemoveNext(10);
+                }
+                setter++;
+                delmsgs.Add((setter, msg.Author.Id), umsg);
+
+                if (!dbo.Settings.DeleteSys) return Task.CompletedTask;
+
+                if (umsg.HasAttachments())
+                    attachment = msg.Attachments.FirstOrDefault().Url;
+                else
+                    attachment = null;
+
+                if (umsg.Author.Username.Equals("FruitMod"))
+                    return Task.CompletedTask;
+
                 if (dbo.Settings.LogChannel == null)
                 {
                     var x = await channel.Guild.GetOwnerAsync();
@@ -64,8 +88,8 @@ namespace FruitMod.Services
                 {
                     var embed = new EmbedBuilder()
                     .WithTitle("A message has been deleted!")
-                    .AddField($"User's {msg.Author} message has been deleted!", Format.Code($"[{msg.Content}]\nAttachment:[{attachment ?? "No attachment"}]", "ini"))
-                    .AddField($"From channel:", $"```ini\n[{msg.Channel}]\n```")
+                    .AddField($"User's {umsg.Author} message has been deleted!", Format.Code($"[{umsg.Content}]\nAttachment:[{attachment ?? "No attachment"}]", "ini"))
+                    .AddField($"From channel:", $"```ini\n[{umsg.Channel}]\n```")
                     .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
                     .WithColor(Color.Red)
                     .Build();
