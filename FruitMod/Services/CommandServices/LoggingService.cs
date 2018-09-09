@@ -22,7 +22,7 @@ namespace FruitMod.Services
                     Console.ForegroundColor = Color.Lime;
                     break;
                 case LogSeverity.Warning:
-                    Console.ForegroundColor = Color.IndianRed;
+                    Console.ForegroundColor = Color.Orange;
                     break;
                 case LogSeverity.Critical:
                     Console.ForegroundColor = Color.Red;

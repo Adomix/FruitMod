@@ -30,7 +30,7 @@ namespace FruitMod.Commands
         {
             var prefixes = string.Join(", ",_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes);
             var pages = new List<string>();
-            var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner")).OrderBy(x => x.Name);
+            var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner"));
             foreach (var module in modules)
             {
                 string description = null;

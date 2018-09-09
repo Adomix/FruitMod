@@ -14,7 +14,7 @@ namespace FruitMod.Commands.FunCommands
     {
         private readonly Random _random;
         private readonly DbService _db;
-        private static Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
+        private static Dictionary<(ulong, ulong), DateTime> feedback = new Dictionary<(ulong, ulong), DateTime>();
 
         public Mangos(Random random, DbService db)
         {
@@ -44,8 +44,8 @@ namespace FruitMod.Commands.FunCommands
             {
                 dbo.UserCurrency.TryAdd(Context.User.Id, 0);
             }
-            if (feedback.ContainsKey(Context.User.Id) && feedback[Context.User.Id].Date == DateTime.Now.Date) { await ReplyAsync("You have already redeemed your daily today!"); return; }
-            feedback.Add(Context.User.Id, DateTime.Now);
+            if (feedback.ContainsKey((Context.Guild.Id, Context.User.Id)) && feedback[(Context.Guild.Id, Context.User.Id)].Date == DateTime.Now.Date) { await ReplyAsync("You have already redeemed your daily today!"); return; }
+            feedback.Add((Context.Guild.Id, Context.User.Id), DateTime.Now);
             var mangos = _random.Next(10, 51);
             dbo.UserCurrency[Context.User.Id] += mangos;
             _db.StoreObject(dbo, Context.Guild.Id);

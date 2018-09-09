@@ -9,12 +9,12 @@ using QuickType;
 namespace FruitMod.Commands.NSFWCommands
 {
     [RequireNsfw]
-    public class NSFWCommands : ModuleBase<SocketCommandContext>
+    public class NSFW : ModuleBase<SocketCommandContext>
     {
         private readonly HttpClient _http;
         private readonly Random _random;
 
-        public NSFWCommands(Random random, HttpClient http)
+        public NSFW(Random random, HttpClient http)
         {
             _random = random;
             _http = http;

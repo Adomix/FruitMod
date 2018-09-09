@@ -19,8 +19,7 @@ namespace FruitMod.Services
         private readonly DbService _db;
         private readonly LoggingService _log;
 
-        public SortedDictionary<(int, ulong), SocketUserMessage> delmsgs { get; set; } = new SortedDictionary<(int, ulong), SocketUserMessage>();
-        private static int setter = 0;
+        public SortedDictionary<ulong, List<SocketUserMessage>> delmsgs { get; set; } = new SortedDictionary<ulong, List<SocketUserMessage>>();
 
         public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
             LoggingService log)
@@ -63,11 +62,15 @@ namespace FruitMod.Services
 
                 if(delmsgs.Count > 100)
                 {
-                    delmsgs.OrderByDescending(x => x.Key.Item1);
+                    delmsgs.OrderByDescending(x => x.Value);
                     delmsgs.RemoveNext(10);
                 }
-                setter++;
-                delmsgs.Add((setter, msg.Author.Id), umsg);
+                if (!delmsgs.Keys.Contains((umsg.Channel as SocketTextChannel).Guild.Id))
+                {
+                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage>() { umsg });
+                }
+                else
+                    delmsgs[(msg.Channel as SocketTextChannel).Guild.Id].Add(umsg);
 
                 if (!dbo.Settings.DeleteSys) return Task.CompletedTask;
 
