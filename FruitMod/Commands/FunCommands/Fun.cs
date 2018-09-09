@@ -16,18 +16,22 @@ using System.Configuration;
 namespace FruitMod.Commands.FunCommands
 {
     [RequireContext(ContextType.Guild)]
-    public class Fun : InteractiveBase
+    public partial class Fun : InteractiveBase
     {
         private readonly Random _random;
         private readonly DbService _db;
         private readonly HttpClient _http;
         private static Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
+        private readonly Queue<(string suit, string card, int value)> _deck;
+        private readonly Queue<(string suit, string card, int value)> _ddeck;
 
         public Fun(Random random, DbService db, HttpClient http)
         { 
             _random = random;
             _db = db;
             _http = http;
+            _deck = new Queue<(string, string, int)>((from suit in _suits from card in _cards select (suit, card.Key, card.Value)).OrderBy(_ => _random.Next()));
+            _ddeck = new Queue<(string, string, int)>((from suit in _suits from card in _cards select (suit, card.Key, card.Value)).OrderBy(_ => _random.Next()));
         }
 
         [Command("flip", RunMode = RunMode.Async), Alias("coin flip")]

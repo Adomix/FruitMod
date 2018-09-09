@@ -19,6 +19,8 @@ namespace FruitMod.Commands
         private readonly CommandService _cmd;
         private readonly DbService _db;
 
+        private static Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
+
         public General(DiscordSocketClient client, CommandService cmd, DbService db)
         {
             _client = client;
@@ -133,9 +135,19 @@ namespace FruitMod.Commands
             var roles = string.Join(", ", suser.Roles.OrderBy(x => x.Name));
             if (suser.Roles.ToList().Select(x => x.Name).Count() > 5) roles = $"`{string.Join(", ", suser.Roles.OrderBy(x => x.Name))}`";
 
+            Color color;
+
+            if (!(suser.Roles.Contains(suser.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+            {
+                color = Color.DarkPurple;
+            }
+            else
+            {
+                color = suser.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+            }
             var infoembed = new EmbedBuilder()
 
-                .WithColor(suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color)
+                .WithColor(color)
                 .WithTitle($"User: {suser.Username}")
                 .WithThumbnailUrl(suser.GetAvatarUrl())
                 .WithCurrentTimestamp()
@@ -160,6 +172,43 @@ namespace FruitMod.Commands
 
                 .Build();
             await Context.Channel.SendMessageAsync(string.Empty, false, infoembed);
+        }
+
+        [Command("avatar")]
+        [Summary("Shows the users avatar. Usage: avatar <user>(optional)")]
+        public async Task Avatar([Remainder] IUser user = null)
+        {
+
+            if (user == null) user = Context.User;
+
+            if (!(user is SocketGuildUser suser)) return;
+
+            Color color;
+
+            if (!(suser.Roles.Contains(suser.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+            {
+                color = Color.DarkPurple;
+            }
+            else
+            {
+                color = suser.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+            }
+
+            var embed = new EmbedBuilder()
+                .WithColor(color)
+                .WithImageUrl(suser.GetAvatarUrl())
+                .Build();
+            await ReplyAsync(string.Empty, false, embed);
+        }
+
+        [Command("feedback")]
+        [Summary("Gives the bot owner feedback")]
+        public async Task Feedback([Remainder] string message)
+        {
+            if (feedback.ContainsKey(Context.User.Id) && feedback[Context.User.Id].Date == DateTime.Now.Date) { await ReplyAsync("You have already sent some feedback today!"); return; }
+            feedback.Add(Context.User.Id, DateTime.Now);
+            await _client.GetUser(386969677143736330).SendMessageAsync($"Feedback from {Context.User} : {message}");
+            await ReplyAsync("Thank you! Your feedback has been sent to the bot owner!");
         }
 
         [Command("blocklist", RunMode = RunMode.Async)]

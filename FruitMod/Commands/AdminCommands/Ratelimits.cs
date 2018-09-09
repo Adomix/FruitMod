@@ -34,6 +34,7 @@ namespace FruitMod.Commands
                 _rls.rlb.Add(Context.Channel.Id, false);
                 _rls.msgdict.Clear();
             }
+
             await ReplyAsync("All ratelimits cleared!");
         }
 

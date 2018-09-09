@@ -85,7 +85,7 @@ namespace FruitMod.Services
 
                 if (!(msg is SocketUserMessage umsg)) return Task.CompletedTask;
 
-                if(delmsgs.Count >= 100)
+                if(delmsgs.Values.Count >= 50)
                 {
                     delmsgs.OrderByDescending(x => x.Value);
                     delmsgs.RemoveNext(10);
@@ -104,7 +104,7 @@ namespace FruitMod.Services
                 else
                     attachment = null;
 
-                if (umsg.Author.Username.Equals("FruitMod"))
+                if (umsg.Author.IsBot)
                     return Task.CompletedTask;
 
                 if (dbo.Settings.LogChannel == null)
@@ -116,7 +116,7 @@ namespace FruitMod.Services
                 {
                     var embed = new EmbedBuilder()
                     .WithTitle("A message has been deleted!")
-                    .AddField($"User's {umsg.Author} message has been deleted!", Format.Code($"[{umsg.Content}]\nAttachment:[{attachment ?? "No attachment"}]", "ini"))
+                    .AddField($"User's {umsg.Author} message has been deleted!", Format.Code($"[{umsg.Content}]\nAttachments {umsg.Attachments.Count()}:[{attachment ?? "No attachment"}]", "ini"))
                     .AddField($"From channel:", $"```ini\n[{umsg.Channel}]\n```")
                     .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
                     .WithColor(Color.Red)

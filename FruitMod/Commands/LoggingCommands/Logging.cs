@@ -20,13 +20,21 @@ namespace FruitMod.Commands.LoggingCommands
         [Summary("snipes the last deleted mention")]
         public async Task Snipe()
         {
-            var message = _guildService.delmsgs[Context.Guild.Id].LastOrDefault(x => x.MentionedUsers.Count > 0);
+            var message = _guildService.delmsgs[Context.Guild.Id].FirstOrDefault(x => x.MentionedUsers.Count > 0);
             if (message != null)
             {
-                var author = message.Author as SocketGuildUser;
-                var color = (message.Author as SocketGuildUser).Roles.LastOrDefault(x => x.Color != Color.Default).Color;
-                if (color == null)
+                if (!(message.Author is SocketGuildUser author)) return;
+                Color color;
+
+                if ((!author.Roles.Contains(author.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+                {
                     color = Color.DarkPurple;
+                }
+                else
+                {
+                    color = author.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+                }
+
                 var embed = new EmbedBuilder()
                     .WithCurrentTimestamp()
                     .WithColor(color)
@@ -45,13 +53,21 @@ namespace FruitMod.Commands.LoggingCommands
         [Summary("grabs the last deleted message")]
         public async Task Grab()
         {
-            var message = _guildService.delmsgs[Context.Guild.Id].LastOrDefault(x => x.MentionedUsers.Count == 0);
+            var message = _guildService.delmsgs[Context.Guild.Id].FirstOrDefault(x => x.MentionedUsers.Count == 0);
             if (message != null)
             {
-                var author = message.Author as SocketGuildUser;
-                var color = (message.Author as SocketGuildUser).Roles.LastOrDefault(x => x.Color != Color.Default).Color;
-                if (color == null)
+                if (!(message.Author is SocketGuildUser author)) return;
+                Color color;
+
+                if (!(author.Roles.Contains(author.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+                {
                     color = Color.DarkPurple;
+                }
+                else
+                {
+                    color = author.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+                }
+
                 var embed = new EmbedBuilder()
                     .WithCurrentTimestamp()
                     .WithColor(color)

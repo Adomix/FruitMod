@@ -5,27 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using FruitMod.Database;
 using FruitMod.Objects;
 using Discord.Addons.Interactive;
 
 namespace FruitMod.Commands.FunCommands
 {
-    public class Blackjack : InteractiveBase
+    public partial class Fun : InteractiveBase
     {
-        private readonly DbService _db;
-        private readonly Random _randomizer;
         public bool blackjackResult;
-        private readonly Queue<(string suit, string card, int value)> _deck;
-        private readonly Queue<(string suit, string card, int value)> _ddeck;
-
-        public Blackjack(Random randomizer, DbService db)
-        {
-            _randomizer = randomizer;
-            _db = db;
-            _deck = new Queue<(string, string, int)>((from suit in _suits from card in _cards select (suit, card.Key, card.Value)).OrderBy(_ => _randomizer.Next()));
-            _ddeck = new Queue<(string, string, int)>((from suit in _suits from card in _cards select (suit, card.Key, card.Value)).OrderBy(_ => _randomizer.Next()));
-        }
 
         private readonly IReadOnlyDictionary<string, int> _cards = new Dictionary<string, int> { { "ace", 1 }, { "two", 2 },{ "three", 3 }, { "four", 4 },{ "five", 5 },{ "six", 6 },{ "seven", 7 },
             { "eight", 8 },{ "nine", 9 },{ "ten", 10 },{ "jack", 10 },{ "queen", 10 },{ "king", 10 }};
@@ -210,7 +197,7 @@ namespace FruitMod.Commands.FunCommands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var userMangos = dbo.UserCurrency[Context.User.Id];
-            int mangos = bet * _randomizer.Next(1, 4);
+            int mangos = bet * _random.Next(1, 4);
             bool? win = null;
             if (player == dealer)
             {
