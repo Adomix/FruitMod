@@ -20,7 +20,7 @@ namespace FruitMod.Commands.LoggingCommands
         [Summary("snipes the last deleted mention")]
         public async Task Snipe()
         {
-            var message = _guildService.delmsgs[Context.Guild.Id].FirstOrDefault(x => x.MentionedUsers.Count > 0);
+            var message = _guildService.delmsgs[Context.Guild.Id].LastOrDefault(x => x.MentionedUsers.Count > 0);
             if (message != null)
             {
                 if (!(message.Author is SocketGuildUser author)) return;
@@ -54,7 +54,7 @@ namespace FruitMod.Commands.LoggingCommands
         [Summary("grabs the last deleted message")]
         public async Task Grab()
         {
-            var message = _guildService.delmsgs[Context.Guild.Id].FirstOrDefault(x => x.MentionedUsers.Count == 0);
+            var message = _guildService.delmsgs[Context.Guild.Id].LastOrDefault(x => x.MentionedUsers.Count == 0);
 
             if (message != null)
             {

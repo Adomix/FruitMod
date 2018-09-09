@@ -9,7 +9,10 @@ using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Database;
 using FruitMod.Interactive.Paginator;
+using Octokit;
+using Octokit.Internal;
 using FruitMod.Objects;
+using System.Configuration;
 
 namespace FruitMod.Commands
 {
@@ -17,6 +20,7 @@ namespace FruitMod.Commands
     {
         private CommandService CommandService { get; }
         private readonly DbService _db;
+        private static GitHubClient github = new GitHubClient(new ProductHeaderValue("Adomix"), new InMemoryCredentialStore(new Credentials(ConfigurationManager.AppSettings["githubtoken"])));
 
         public Help(CommandService commandService, DbService db)
         {
@@ -28,7 +32,7 @@ namespace FruitMod.Commands
         [Summary("Displays all of the commands the bot may provide!")]
         public async Task HelpCommand()
         {
-            var prefixes = string.Join(", ",_db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes);
+            var prefixes = string.Join(", ", _db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes);
             var pages = new List<string>();
             var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner"));
             foreach (var module in modules)
@@ -54,7 +58,7 @@ namespace FruitMod.Commands
             var msg = new PaginatedMessage
             {
                 Color = Color.Green,
-                Options = new PaginatedAppearanceOptions { DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60)},
+                Options = new PaginatedAppearanceOptions { DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60) },
                 Pages = pages,
                 Author = new EmbedAuthorBuilder() { Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl() },
                 Title = $"Commands you may use || Current Prefix(es): {prefixes}"
@@ -78,6 +82,23 @@ namespace FruitMod.Commands
         {
             var channel = ((Context.Client.GetChannel(487463564592939030) as SocketTextChannel));
             var msg = (await channel.GetMessagesAsync(1).FlattenAsync()).FirstOrDefault();
+            var repo = await github.Repository.Get("Adomix", "FruitMod");
+            var commits = await github.Repository.Commit.GetAll("Adomix", "FruitMod");
+
+            var embed = new EmbedBuilder()
+                .WithAuthor(Context.User)
+                .WithThumbnailUrl(repo.Owner.AvatarUrl)
+                .WithColor(Color.DarkPurple)
+
+                .AddField("Name:", repo.Name, true)
+                .AddField("Description:", repo.Description ?? "No description", true)
+
+                .AddField("Commits:", string.Join("\n", commits.Select(x => x.Commit.Message).Take(3)) ?? "No commits")
+
+                .Build();
+
+            await ReplyAsync(string.Empty, false, embed);
+
             await ReplyAsync(string.Empty, false, (msg.Embeds.FirstOrDefault() as Embed));
         }
     }

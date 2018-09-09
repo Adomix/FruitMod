@@ -196,7 +196,7 @@ namespace FruitMod.Commands
 
             var embed = new EmbedBuilder()
                 .WithColor(color)
-                .WithImageUrl(suser.GetAvatarUrl(size: 1024))
+                .WithImageUrl(suser.GetAvatarUrl(size: 1024) ?? "User has the default avatar!")
                 .Build();
             await ReplyAsync(string.Empty, false, embed);
         }
