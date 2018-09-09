@@ -6,7 +6,7 @@ namespace FruitMod.Extensions
 {
     public static class MassRemove
     {
-        public static void RemoveNext<TKey, TValue> (this SortedDictionary<TKey, TValue> dictionary, uint x)
+        public static void RemoveNext<TKey, TValue> (this SortedDictionary<TKey, TValue> dictionary, int x)
         {
             if(x > int.MaxValue)
             {
