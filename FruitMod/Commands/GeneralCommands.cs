@@ -196,7 +196,7 @@ namespace FruitMod.Commands
 
             var embed = new EmbedBuilder()
                 .WithColor(color)
-                .WithImageUrl(suser.GetAvatarUrl())
+                .WithImageUrl(suser.GetAvatarUrl(size: 1024))
                 .Build();
             await ReplyAsync(string.Empty, false, embed);
         }

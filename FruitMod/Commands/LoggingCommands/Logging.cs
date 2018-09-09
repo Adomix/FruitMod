@@ -24,6 +24,7 @@ namespace FruitMod.Commands.LoggingCommands
             if (message != null)
             {
                 if (!(message.Author is SocketGuildUser author)) return;
+
                 Color color;
 
                 if ((!author.Roles.Contains(author.Roles.FirstOrDefault(x => x.Color != Color.Default))))
@@ -54,12 +55,14 @@ namespace FruitMod.Commands.LoggingCommands
         public async Task Grab()
         {
             var message = _guildService.delmsgs[Context.Guild.Id].FirstOrDefault(x => x.MentionedUsers.Count == 0);
+
             if (message != null)
             {
                 if (!(message.Author is SocketGuildUser author)) return;
+
                 Color color;
 
-                if (!(author.Roles.Contains(author.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+                if ((!author.Roles.Contains(author.Roles.FirstOrDefault(x => x.Color != Color.Default))))
                 {
                     color = Color.DarkPurple;
                 }

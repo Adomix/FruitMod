@@ -45,6 +45,16 @@ namespace FruitMod.Commands
             await Context.Guild.AddBanAsync(user, time, $"{reason}");
         }
 
+        [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
+        [RequireOwner(Group = "admin")]
+        [Command("bans")]
+        [Summary("Shows the users banned")]
+        public async Task Bans()
+        {
+            var bans = await Context.Guild.GetBansAsync();
+            await ReplyAsync(string.Join("\n", bans));
+        }
+
         [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
         [Command("mute", RunMode = RunMode.Async)]
         [Summary("Text mutes or unmutes a user!")]
