@@ -15,18 +15,20 @@ namespace FruitMod.Services
     public class GuildService
     {
         private readonly DiscordSocketClient _client;
-        private readonly CommandHandlingService _commands;
         private readonly DbService _db;
+        private readonly CommandHandlingService _commands;
+        private readonly RatelimitService _rls;
         private readonly LoggingService _log;
 
         public SortedDictionary<ulong, List<SocketUserMessage>> delmsgs { get; set; } = new SortedDictionary<ulong, List<SocketUserMessage>>();
 
-        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
+        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands, RatelimitService rls,
             LoggingService log)
         {
             _client = client;
             _db = db;
             _commands = commands;
+            _rls = rls;
             _log = log;
         }
 
@@ -35,6 +37,29 @@ namespace FruitMod.Services
             _client.MessageDeleted += DeletedMessageLogging;
             _client.UserLeft += UserLeftLogging;
             _client.UserJoined += CheckMuted;
+            _client.MessageReceived += RlMsg;
+        }
+
+        private Task RlMsg(SocketMessage msg)
+        {
+            Task.Run(async () =>
+            {
+                if (!(msg.Channel is SocketTextChannel channel)) return;
+                if (_rls.rlb[channel.Id] == false) return;
+                if (!(_rls.msgdict.ContainsKey((channel.Id, msg.Author.Id))))
+                {
+                    _rls.msgdict.Add((channel.Id, msg.Author.Id), DateTime.UtcNow);
+                }
+                else
+                {
+                    if (msg.CreatedAt.UtcDateTime > _rls.msgdict[(channel.Id, msg.Author.Id)].AddSeconds(_rls.time))
+                    {
+                        _rls.msgdict[(channel.Id, msg.Author.Id)] = DateTime.Now;
+                        await msg.DeleteAsync();
+                    }
+                }
+            });
+            return Task.CompletedTask;
         }
 
         // _client.MessageDeleted += DeletedMessageLogging;
@@ -60,7 +85,7 @@ namespace FruitMod.Services
 
                 if (!(msg is SocketUserMessage umsg)) return Task.CompletedTask;
 
-                if(delmsgs.Count > 100)
+                if(delmsgs.Count >= 100)
                 {
                     delmsgs.OrderByDescending(x => x.Value);
                     delmsgs.RemoveNext(10);

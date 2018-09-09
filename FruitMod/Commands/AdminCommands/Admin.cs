@@ -23,15 +23,26 @@ namespace FruitMod.Commands
             _client = client;
         }
 
+
+        [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
+        [Command("kick")]
+        [Summary("Bans targeted user, usage: kick <user> <reason(optional>")]
+        public async Task Kick(IUser user, [Remainder] string reason = null)
+        {
+            if (reason == null) reason = "x";
+            await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            await Context.Guild.AddBanAsync(user, 0, $"{reason}");
+            await Context.Guild.RemoveBanAsync(user);
+        }
+
         [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
         [Command("ban")]
-        [Summary("Bans targeted user, usage: !admin ban <user> <reason(optional>")]
-        public async Task Ban(IUser user, [Remainder] string reason = null)
+        [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason(optional>")]
+        public async Task Ban(IUser user, int time = 0, [Remainder] string reason = null)
         {
             if (reason == null) reason = "x";
             await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
-            await Context.Guild.AddBanAsync(user, 0, $"{reason}");
-            await ReplyAsync($"User {user} has been banned for {reason} by {Context.User.Username}!");
+            await Context.Guild.AddBanAsync(user, time, $"{reason}");
         }
 
         [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
