@@ -182,8 +182,8 @@ namespace FruitMod.Commands.FunCommands
         public async Task Ud([Remainder] string word)
         {
             var jResponse =
-                JObject.Parse(await _http.GetStringAsync("http://api.urbandictionary.com/v0/define?term={word}"));
-            await ReplyAsync(jResponse["list"][1]["definition"].ToString());
+                JObject.Parse(await _http.GetStringAsync($"http://api.urbandictionary.com/v0/define?term={word}"));
+            await ReplyAsync(jResponse["list"][0]["definition"].ToString());
         }
 
         [Command("wa", RunMode = RunMode.Async)]
