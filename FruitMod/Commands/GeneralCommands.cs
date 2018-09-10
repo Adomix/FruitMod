@@ -137,13 +137,13 @@ namespace FruitMod.Commands
 
             Color color;
 
-            if (!(suser.Roles.Contains(suser.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+            if (!(suser.Roles.Contains(suser.Roles.LastOrDefault(x => x.Color != Color.Default))))
             {
                 color = Color.DarkPurple;
             }
             else
             {
-                color = suser.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+                color = suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
             }
             var infoembed = new EmbedBuilder()
 
@@ -185,13 +185,13 @@ namespace FruitMod.Commands
 
             Color color;
 
-            if (!(suser.Roles.Contains(suser.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+            if (!(suser.Roles.Contains(suser.Roles.LastOrDefault(x => x.Color != Color.Default))))
             {
                 color = Color.DarkPurple;
             }
             else
             {
-                color = suser.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+                color = suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
             }
 
             var embed = new EmbedBuilder()

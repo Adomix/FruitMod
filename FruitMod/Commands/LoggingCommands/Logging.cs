@@ -27,13 +27,13 @@ namespace FruitMod.Commands.LoggingCommands
 
                 Color color;
 
-                if ((!author.Roles.Contains(author.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+                if ((!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default))))
                 {
                     color = Color.DarkPurple;
                 }
                 else
                 {
-                    color = author.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+                    color = author.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
                 }
 
                 var embed = new EmbedBuilder()
@@ -62,13 +62,13 @@ namespace FruitMod.Commands.LoggingCommands
 
                 Color color;
 
-                if ((!author.Roles.Contains(author.Roles.FirstOrDefault(x => x.Color != Color.Default))))
+                if ((!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default))))
                 {
                     color = Color.DarkPurple;
                 }
                 else
                 {
-                    color = author.Roles.FirstOrDefault(x => x.Color != Color.Default).Color;
+                    color = author.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
                 }
 
                 var embed = new EmbedBuilder()
