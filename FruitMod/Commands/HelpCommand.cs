@@ -89,9 +89,9 @@ namespace FruitMod.Commands
                 .WithAuthor(Context.User)
                 .WithThumbnailUrl(repo.Owner.AvatarUrl)
                 .WithColor(Color.DarkPurple)
+                .WithTitle(repo.Name)
 
-                .AddField("Name:", repo.Name, true)
-                .AddField("Description:", repo.Description ?? "No description", true)
+                .AddField("Description:", repo.Description ?? "No description")
 
                 .AddField("Commits:", string.Join("\n", commits.Select(x => x.Commit.Message).Take(3)) ?? "No commits")
 

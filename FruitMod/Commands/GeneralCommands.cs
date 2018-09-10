@@ -126,6 +126,7 @@ namespace FruitMod.Commands
         [Summary("Gathers info on a user, usage: userinfo <user>")]
         public async Task UserInfo([Remainder] IUser user)
         {
+
             if (!(user is SocketGuildUser suser)) return;
 
             var perms = string.Join(", ", suser.GuildPermissions.ToList());
