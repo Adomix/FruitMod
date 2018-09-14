@@ -212,7 +212,7 @@ namespace FruitMod.Commands
         [RequireOwner(Group = "admin")]
         [Command("agive")]
         [Summary("gives x of mangos. Usage: agive 10 user")]
-        public async Task AGive(uint amount, [Remainder] IUser user)
+        public async Task AGive(int amount, [Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
@@ -220,6 +220,12 @@ namespace FruitMod.Commands
             if (user is null)
             {
                 await ReplyAsync("You must specify a user!");
+                return;
+            }
+            
+            if (amount <= 0)
+            {
+                await ReplyAsync("The amount must be greater than zero!")
                 return;
             }
 
@@ -245,12 +251,18 @@ namespace FruitMod.Commands
         [RequireOwner(Group = "admin")]
         [Command("agive", RunMode = RunMode.Async)]
         [Summary("gives x of mangos. Usage: agive 10 @everyone")]
-        public async Task AGive(uint amount, [Remainder] IRole role)
+        public async Task AGive(int amount, [Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (role is null)
             {
                 await ReplyAsync("You must specify a role!");
+                return;
+            }
+            
+            if (amount <= 0)
+            {
+                await ReplyAsync("The amount must be greater than zero!")
                 return;
             }
 
