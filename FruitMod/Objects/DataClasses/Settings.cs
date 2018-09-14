@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Discord;
+using System.Collections.Generic;
 
 namespace FruitMod.Objects.DataClasses
 {
@@ -12,5 +13,6 @@ namespace FruitMod.Objects.DataClasses
         public List<ulong> MutedUsers { get; set; } = new List<ulong>();
         public ulong? InfoChannel { get; set; } = null;
         public ulong? MuteRole { get; set; } = null;
+        public List<IRole> AutoRoles { get; set; } = new List<IRole>();
     }
 }

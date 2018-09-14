@@ -12,12 +12,12 @@ namespace FruitMod.SettingCommands
         GuildPermission.KickMembers, GuildPermission.ManageMessages,
         GuildPermission.ManageChannels, Group = "settings")]
     [RequireOwner(Group = "settings")]
-    public class CustomSettings : ModuleBase<SocketCommandContext>
+    public class Settings : ModuleBase<SocketCommandContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly DbService _db;
 
-        public CustomSettings(DiscordSocketClient client, DbService db)
+        public Settings(DiscordSocketClient client, DbService db)
         {
             _client = client;
             _db = db;
@@ -56,6 +56,24 @@ namespace FruitMod.SettingCommands
             dbo.Settings.MuteRole = role.Id;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"Mute role has been updated to {role.Name}!");
+        }
+
+        [Command("role add", RunMode = RunMode.Async)]
+        [Summary("Adds a role to the autorole")]
+        public async Task AutoRoleAdd([Remainder] IRole role)
+        {
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            dbo.Settings.AutoRoles.Add(role);
+            await ReplyAsync($"New users will now automatically receive {role.Name}!");
+        }
+
+        [Command("role del", RunMode = RunMode.Async)]
+        [Summary("Deletes a role to the autorole")]
+        public async Task AutoRoleDel([Remainder] IRole role)
+        {
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            dbo.Settings.AutoRoles.Remove(role);
+            await ReplyAsync($"New users will no longer automatically receive {role.Name}!");
         }
 
         [Command("evkick", RunMode = RunMode.Async)]
@@ -144,6 +162,7 @@ namespace FruitMod.SettingCommands
             await ReplyAsync("Settings have been restored to default!");
         }
 
+        // Prefixes
         [Group("prefix")]
         public class Prefixes : ModuleBase<SocketCommandContext>
         {
@@ -187,7 +206,7 @@ namespace FruitMod.SettingCommands
             }
 
             [Command]
-            [Summary("adds a custom prefix, default @bot")]
+            [Summary("shows custom prefixes")]
             public async Task PrefixList()
             {
                 var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);

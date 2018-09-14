@@ -45,7 +45,7 @@ namespace FruitMod.Commands
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context);
                     if (result.IsSuccess)
-                        description += $"**__{cmd.Aliases.First()}__** : => __{cmd.Summary}__\n";
+                        description += $"**__{cmd.Aliases.First()}__** : => __{cmd.Summary}__\n\n";
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))

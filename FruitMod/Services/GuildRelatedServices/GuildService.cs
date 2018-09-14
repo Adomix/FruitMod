@@ -36,10 +36,11 @@ namespace FruitMod.Services
 
         public void GuildServices()
         {
+            _client.MessageReceived += RlMsg;
             _client.MessageDeleted += DeletedMessageLogging;
             _client.UserLeft += UserLeftLogging;
+            _client.UserJoined += AutoRole;
             _client.UserJoined += CheckMuted;
-            _client.MessageReceived += RlMsg;
         }
 
         private Task RlMsg(SocketMessage msg)
@@ -160,6 +161,13 @@ namespace FruitMod.Services
                     : _log.Log(message);
             });
             return Task.CompletedTask;
+        }
+
+        private async Task AutoRole(SocketGuildUser user)
+        {
+            var dbo = _db.GetById<GuildObjects>(user.Guild.Id);
+            if (dbo.Settings.AutoRoles.Count <= 0) return;
+            await user.AddRolesAsync(dbo.Settings.AutoRoles);
         }
 
         // _client.Joined += CheckMuted;

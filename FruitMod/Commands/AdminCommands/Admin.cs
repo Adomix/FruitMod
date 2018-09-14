@@ -26,7 +26,7 @@ namespace FruitMod.Commands
 
         [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
         [Command("kick")]
-        [Summary("Bans targeted user, usage: kick <user> <reason(optional>")]
+        [Summary("Kicks targeted user, usage: kick <user> <reason(optional>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
             await user.SendMessageAsync(
