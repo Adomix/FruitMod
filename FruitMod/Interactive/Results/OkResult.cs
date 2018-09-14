@@ -4,6 +4,8 @@ namespace Discord.Addons.Interactive
 {
     public class OkResult : RuntimeResult
     {
-        public OkResult(string reason = null) : base(null, reason) { }
+        public OkResult(string reason = null) : base(null, reason)
+        {
+        }
     }
 }

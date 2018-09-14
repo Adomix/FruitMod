@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,24 +10,26 @@ using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Database;
 using FruitMod.Interactive.Paginator;
+using FruitMod.Objects;
 using Octokit;
 using Octokit.Internal;
-using FruitMod.Objects;
-using System.Configuration;
 
 namespace FruitMod.Commands
 {
     public class Help : InteractiveBase
     {
-        private CommandService CommandService { get; }
+        private static readonly GitHubClient github = new GitHubClient(new ProductHeaderValue("Adomix"),
+            new InMemoryCredentialStore(new Credentials(ConfigurationManager.AppSettings["githubtoken"])));
+
         private readonly DbService _db;
-        private static GitHubClient github = new GitHubClient(new ProductHeaderValue("Adomix"), new InMemoryCredentialStore(new Credentials(ConfigurationManager.AppSettings["githubtoken"])));
 
         public Help(CommandService commandService, DbService db)
         {
             CommandService = commandService;
             _db = db;
         }
+
+        private CommandService CommandService { get; }
 
         [Command("help", RunMode = RunMode.Async)]
         [Summary("Displays all of the commands the bot may provide!")]
@@ -47,20 +50,20 @@ namespace FruitMod.Commands
 
                 if (!string.IsNullOrWhiteSpace(description))
                 {
-                    StringBuilder sb = new StringBuilder();
+                    var sb = new StringBuilder();
                     sb.AppendLine($"**Module: __{module.Name}__**\n");
                     sb.AppendLine(description);
                     pages.Add(sb.ToString());
-
                 }
             }
 
             var msg = new PaginatedMessage
             {
                 Color = Color.Green,
-                Options = new PaginatedAppearanceOptions { DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60) },
+                Options = new PaginatedAppearanceOptions
+                    {DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60)},
                 Pages = pages,
-                Author = new EmbedAuthorBuilder() { Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl() },
+                Author = new EmbedAuthorBuilder {Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl()},
                 Title = $"Commands you may use || Current Prefix(es): {prefixes}"
             };
             await PagedReplyAsync(msg);
@@ -80,7 +83,7 @@ namespace FruitMod.Commands
         [Summary("Shows the latest github push")]
         public async Task Git()
         {
-            var channel = ((Context.Client.GetChannel(487463564592939030) as SocketTextChannel));
+            var channel = Context.Client.GetChannel(487463564592939030) as SocketTextChannel;
             var msg = (await channel.GetMessagesAsync(1).FlattenAsync()).FirstOrDefault();
             var repo = await github.Repository.Get("Adomix", "FruitMod");
             var commits = await github.Repository.Commit.GetAll("Adomix", "FruitMod");
@@ -90,16 +93,13 @@ namespace FruitMod.Commands
                 .WithThumbnailUrl(repo.Owner.AvatarUrl)
                 .WithColor(Color.DarkPurple)
                 .WithTitle(repo.Name)
-
                 .AddField("Description:", repo.Description ?? "No description")
-
                 .AddField("Commits:", string.Join("\n", commits.Select(x => x.Commit.Message).Take(3)) ?? "No commits")
-
                 .Build();
 
             await ReplyAsync(string.Empty, false, embed);
 
-            await ReplyAsync(string.Empty, false, (msg.Embeds.FirstOrDefault() as Embed));
+            await ReplyAsync(string.Empty, false, msg.Embeds.FirstOrDefault() as Embed);
         }
     }
 }

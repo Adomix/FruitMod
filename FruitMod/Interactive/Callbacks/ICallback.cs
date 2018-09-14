@@ -5,7 +5,7 @@ namespace FruitMod.Interactive.Callbacks
 {
     public interface ICallback
     {
-        Task DisplayAsync();
         IUserMessage Message { get; }
+        Task DisplayAsync();
     }
 }

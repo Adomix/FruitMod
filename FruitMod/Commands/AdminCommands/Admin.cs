@@ -14,8 +14,8 @@ namespace FruitMod.Commands
 {
     public class Admin : ModuleBase<SocketCommandContext>
     {
-        private readonly DbService _db;
         private readonly DiscordSocketClient _client;
+        private readonly DbService _db;
 
         public Admin(DbService db, DiscordSocketClient client)
         {
@@ -29,7 +29,8 @@ namespace FruitMod.Commands
         [Summary("Bans targeted user, usage: kick <user> <reason(optional>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
-            await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            await user.SendMessageAsync(
+                $"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user, 0, $"{reason}");
             await Context.Guild.RemoveBanAsync(user);
         }
@@ -39,7 +40,8 @@ namespace FruitMod.Commands
         [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason(optional>")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
-            await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            await user.SendMessageAsync(
+                $"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user, time, $"{reason}");
         }
 
@@ -53,7 +55,8 @@ namespace FruitMod.Commands
             await ReplyAsync(string.Join("\n", bans));
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.MuteMembers, GuildPermission.ManageRoles,
+            GuildPermission.ManageMessages, Group = "admin")]
         [Command("mute", RunMode = RunMode.Async)]
         [Summary("Text mutes or unmutes a user!")]
         public async Task Mute([Remainder] IUser user)
@@ -67,11 +70,11 @@ namespace FruitMod.Commands
             }
 
             var roleId = dbo.Settings.MuteRole.Value;
-            if (((SocketGuildUser)user).Roles.Any(x => x.Id == roleId))
+            if (((SocketGuildUser) user).Roles.Any(x => x.Id == roleId))
             {
                 if (user != null)
                 {
-                    await ((SocketGuildUser)user)?.RemoveRoleAsync(Context.Guild.GetRole(roleId));
+                    await ((SocketGuildUser) user)?.RemoveRoleAsync(Context.Guild.GetRole(roleId));
                     dbo.UserSettings.MutedUsers.Remove(user.Id);
                     _db.StoreObject(dbo, Context.Guild.Id);
                     await ReplyAsync($"User {user.Mention} has been unmuted!");
@@ -80,13 +83,14 @@ namespace FruitMod.Commands
             else
             {
                 dbo.UserSettings.MutedUsers.Add(user.Id);
-                await ((SocketGuildUser)user).AddRoleAsync(Context.Guild.GetRole(roleId));
+                await ((SocketGuildUser) user).AddRoleAsync(Context.Guild.GetRole(roleId));
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user.Mention} has been muted!");
             }
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.MuteMembers, GuildPermission.ManageRoles,
+            GuildPermission.ManageMessages, Group = "admin")]
         [Command("vmute")]
         [Summary("Mutes or unmutes the targeted user, usage: !admin mute <user> <reason(optional>")]
         public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
@@ -98,17 +102,16 @@ namespace FruitMod.Commands
             }
             else
             {
-                if (user.IsMuted)
-                {
-                    await user.ModifyAsync(x => x.Mute = false);
-                    await ReplyAsync($"User unmuted! Reason: {reason}");
-                }
+                await user.ModifyAsync(x => x.Mute = false);
+                await ReplyAsync($"User unmuted! Reason: {reason}");
             }
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.MuteMembers, GuildPermission.ManageRoles,
+            GuildPermission.ManageMessages, Group = "admin")]
         [Command("vblock")]
-        [Summary("Mutes & deafens or mutes & undeafens the targeted user, usage: !admin block <user> <reason(optional>")]
+        [Summary(
+            "Mutes & deafens or mutes & undeafens the targeted user, usage: !admin block <user> <reason(optional>")]
         public async Task VBlock(IGuildUser user, string reason = "x")
         {
             if (!user.IsMuted)
@@ -118,15 +121,14 @@ namespace FruitMod.Commands
             }
             else
             {
-                if (user.IsMuted)
-                {
-                    await user.ModifyAsync(x => x.Mute = false);
-                    if (user.IsDeafened || user.IsSelfDeafened) await user.ModifyAsync(x => x.Deaf = false);
-                }
+                await user.ModifyAsync(x => x.Mute = false);
+                if (user.IsDeafened || user.IsSelfDeafened) await user.ModifyAsync(x => x.Deaf = false);
             }
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
+            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
+            GuildPermission.BanMembers, Group = "admin")]
         [Command("block", RunMode = RunMode.Async)]
         [Summary("Blocks or unblocks a user from using the bot!")]
         public async Task Block([Remainder] IUser user)
@@ -141,7 +143,6 @@ namespace FruitMod.Commands
                 dbo.UserSettings.BlockedUsers = existinglist;
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user} has been unblocked!");
-                return;
             }
             else
             {
@@ -185,9 +186,9 @@ namespace FruitMod.Commands
             var channel = Context.Channel as ITextChannel;
             var messages = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             var msgs = from message in messages
-                       where message.Author.Id == user.Id &&
-                             message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                       select message;
+                where message.Author.Id == user.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             if (channel != null) await channel.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
         }
@@ -198,77 +199,107 @@ namespace FruitMod.Commands
         public async Task FmRemove()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (Context.Channel.Id == dbo.Settings.LogChannel) await ReplyAsync("You may not clear me in my log channel!");
+            if (Context.Channel.Id == dbo.Settings.LogChannel)
+                await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
-                          where message.Author.Id == Context.Client.CurrentUser.Id &&
-                                message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                          select message;
-            if (Context.Channel != null) await ((ITextChannel)Context.Channel).DeleteMessagesAsync(delmsgs);
+                where message.Author.Id == Context.Client.CurrentUser.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
+            if (Context.Channel != null) await ((ITextChannel) Context.Channel).DeleteMessagesAsync(delmsgs);
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
+            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
+            GuildPermission.BanMembers, Group = "admin")]
         [RequireOwner(Group = "admin")]
         [Command("perms")]
         [Summary("Lists the bot's perms")]
         public async Task Perms()
         {
             await ReplyAsync("My permissions!:");
-            await ReplyAsync($"{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
+            await ReplyAsync(
+                $"{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
+            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
+            GuildPermission.BanMembers, Group = "admin")]
         [RequireOwner(Group = "admin")]
         [Command("agive")]
         [Summary("gives x of mangos. Usage: agive 10 user")]
         public async Task AGive(int amount, [Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (!dbo.UserCurrency.ContainsKey(user.Id))
+            if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
+
+            if (user == null)
             {
-                dbo.UserCurrency.TryAdd(user.Id, 0);
+                await ReplyAsync("You must specify a user!");
+                return;
             }
-            if (user == null) { await ReplyAsync("You must specify a user!"); return; }
-            if (amount <= 0) { await ReplyAsync($"Amount must be greater than 0!"); return; }
+
+            if (amount <= 0)
+            {
+                await ReplyAsync("Amount must be greater than 0!");
+                return;
+            }
+
             var userGive = dbo.UserCurrency[user.Id];
-            if (userGive == int.MaxValue) { await ReplyAsync($"User is already at the max amount of Mangos! {int.MaxValue}"); }
-            if (amount >= int.MaxValue) { await ReplyAsync($"No overflowing! Will set the user to the max!"); amount = int.MaxValue - userGive; }
+            if (userGive == int.MaxValue)
+                await ReplyAsync($"User is already at the max amount of Mangos! {int.MaxValue}");
+
+            if (amount >= int.MaxValue)
+            {
+                await ReplyAsync("No overflowing! Will set the user to the max!");
+                amount = int.MaxValue - userGive;
+            }
+
             userGive += amount;
             dbo.UserCurrency[user.Id] = userGive;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"You have successfully given {user} {amount} Mangos!");
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
+            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
+            GuildPermission.BanMembers, Group = "admin")]
         [RequireOwner(Group = "admin")]
         [Command("agive")]
         [Summary("gives x of mangos. Usage: agive 10 @everyone")]
         public async Task AGive(int amount, [Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (role == null) { await ReplyAsync("You must specify a role!"); return; }
-            if (amount <= 0) { await ReplyAsync($"Amount must be greater than 0!"); return; }
+            if (role == null)
+            {
+                await ReplyAsync("You must specify a role!");
+                return;
+            }
+
+            if (amount <= 0)
+            {
+                await ReplyAsync("Amount must be greater than 0!");
+                return;
+            }
+
             foreach (IUser user in (role as SocketRole).Members)
             {
-                if (!dbo.UserCurrency.ContainsKey(user.Id))
-                {
-                    dbo.UserCurrency.TryAdd(user.Id, 0);
-                }
-                if (amount >= int.MaxValue)
-                {
-                    amount = int.MaxValue - dbo.UserCurrency[user.Id];
-                }
-                if (dbo.UserCurrency[user.Id] >= int.MaxValue)
-                {
-                    amount = int.MaxValue - dbo.UserCurrency[user.Id];
-                }
+                if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
+
+                if (amount >= int.MaxValue) amount = int.MaxValue - dbo.UserCurrency[user.Id];
+
+                if (dbo.UserCurrency[user.Id] >= int.MaxValue) amount = int.MaxValue - dbo.UserCurrency[user.Id];
+
                 dbo.UserCurrency[user.Id] = dbo.UserCurrency[user.Id] + amount;
             }
+
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"You have successfully given `{role.Name}` {amount} Mangos!");
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
+            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
+            GuildPermission.BanMembers, Group = "admin")]
         [RequireOwner(Group = "admin")]
         [Command("mangor", RunMode = RunMode.Async)]
         [Summary("Resets everyones mangos")]
@@ -276,32 +307,32 @@ namespace FruitMod.Commands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var currency = new ConcurrentDictionary<ulong, int>();
-            foreach (ulong id in dbo.UserCurrency.Keys)
-            {
-                currency.TryAdd(id, 0);
-            }
+            foreach (var id in dbo.UserCurrency.Keys) currency.TryAdd(id, 0);
+
             dbo.UserCurrency = currency;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("All the Mangos have been eaten!");
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
+            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
+            GuildPermission.BanMembers, Group = "admin")]
         [RequireOwner(Group = "admin")]
         [Command("mangor", RunMode = RunMode.Async)]
         [Summary("Resets everyones mangos. Usage: mangor user")]
         public async Task MangoR([Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (!dbo.UserCurrency.ContainsKey(Context.User.Id))
-            {
-                dbo.UserCurrency.TryAdd(Context.User.Id, 0);
-            }
+            if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
+
             dbo.UserCurrency[user.Id] = 0;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"User's {user} Mangos have been eaten!");
         }
 
-        [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
+            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
+            GuildPermission.BanMembers, Group = "admin")]
         [RequireOwner(Group = "admin")]
         [Command("mangorb", RunMode = RunMode.Async)]
         [Summary("Removes all bots added during mango admin operations")]
@@ -314,6 +345,7 @@ namespace FruitMod.Commands
                 var user = Context.Guild.GetUser(x.Key);
                 if (!user.IsBot) y.TryAdd(x.Key, x.Value);
             }
+
             dbo.UserCurrency = y;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("All bots removed!");

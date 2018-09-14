@@ -1,14 +1,15 @@
-﻿using Discord.Commands;
+﻿using System.Threading.Tasks;
+using Discord.Commands;
 using Discord.WebSocket;
-using System.Threading.Tasks;
+using FruitMod.Interactive.Criteria;
 
 namespace FruitMod.Interactive.Paginator
 {
-    internal class EnsureReactionFromSourceUserCriterion : Criteria.ICriterion<SocketReaction>
+    internal class EnsureReactionFromSourceUserCriterion : ICriterion<SocketReaction>
     {
         public Task<bool> JudgeAsync(ICommandContext sourceContext, SocketReaction parameter)
         {
-            bool ok = parameter.UserId == sourceContext.User.Id;
+            var ok = parameter.UserId == sourceContext.User.Id;
             return Task.FromResult(ok);
         }
     }

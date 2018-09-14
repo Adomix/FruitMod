@@ -1,5 +1,5 @@
-﻿using Discord;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Discord;
 using Colour = Discord.Color;
 
 namespace FruitMod.Interactive.Paginator

@@ -15,11 +15,10 @@ namespace FruitMod.Commands
 {
     public class General : ModuleBase<SocketCommandContext>
     {
+        private static readonly Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
         private readonly DiscordSocketClient _client;
         private readonly CommandService _cmd;
         private readonly DbService _db;
-
-        private static Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
 
         public General(DiscordSocketClient client, CommandService cmd, DbService db)
         {
@@ -34,7 +33,8 @@ namespace FruitMod.Commands
         {
             var botInfo = await Context.Client.GetApplicationInfoAsync();
             var time = DateTime.Now - Process.GetCurrentProcess().StartTime;
-            await ReplyAsync($"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
+            await ReplyAsync(
+                $"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
         }
 
         [Command("discord")]
@@ -62,7 +62,8 @@ namespace FruitMod.Commands
             sw.Start();
             var msg = await ReplyAsync("Pinging..");
             sw.Stop();
-            await msg.ModifyAsync(x => x.Content = $":clap: Ping: {sw.ElapsedMilliseconds}ms || :handshake: API: {_client.Latency}ms");
+            await msg.ModifyAsync(x =>
+                x.Content = $":clap: Ping: {sw.ElapsedMilliseconds}ms || :handshake: API: {_client.Latency}ms");
         }
 
         [Command("uptime")]
@@ -93,7 +94,7 @@ namespace FruitMod.Commands
                 await ReplyAsync(
                     $"RIP! {Context.User.Username} has initiated a votekick against {user.Username} for {reason}! You have 60 seconds to vote! Vote opens in 2 seconds!");
                 var msg = await ReplyAsync("How to vote: Click the check for yes, the X for no!");
-                await msg.AddReactionsAsync(new Emoji[] { new Emoji("✅"), new Emoji("❌") });
+                await msg.AddReactionsAsync(new[] {new Emoji("✅"), new Emoji("❌")});
                 await Task.Delay(60000);
                 var mess = await Context.Channel.GetMessageAsync(msg.Id);
                 var message = mess as IUserMessage;
@@ -126,51 +127,40 @@ namespace FruitMod.Commands
         [Summary("Gathers info on a user, usage: userinfo <user>")]
         public async Task UserInfo([Remainder] IUser user)
         {
-
             if (!(user is SocketGuildUser suser)) return;
 
             var perms = string.Join(", ", suser.GuildPermissions.ToList());
             if (suser.GuildPermissions.ToList().Contains(GuildPermission.Administrator)) perms = "All permissions!";
-            if (suser.GuildPermissions.ToList().Count > 5) perms = $"`{string.Join(", ", suser.GuildPermissions.ToList())}`";
+            if (suser.GuildPermissions.ToList().Count > 5)
+                perms = $"`{string.Join(", ", suser.GuildPermissions.ToList())}`";
 
             var roles = string.Join(", ", suser.Roles.OrderBy(x => x.Name));
-            if (suser.Roles.ToList().Select(x => x.Name).Count() > 5) roles = $"`{string.Join(", ", suser.Roles.OrderBy(x => x.Name))}`";
+            if (suser.Roles.ToList().Select(x => x.Name).Count() > 5)
+                roles = $"`{string.Join(", ", suser.Roles.OrderBy(x => x.Name))}`";
 
             Color color;
 
-            if (!(suser.Roles.Contains(suser.Roles.LastOrDefault(x => x.Color != Color.Default))))
-            {
+            if (!suser.Roles.Contains(suser.Roles.LastOrDefault(x => x.Color != Color.Default)))
                 color = Color.DarkPurple;
-            }
             else
-            {
                 color = suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
-            }
             var infoembed = new EmbedBuilder()
-
                 .WithColor(color)
                 .WithTitle($"User: {suser.Username}")
                 .WithThumbnailUrl(suser.GetAvatarUrl())
                 .WithCurrentTimestamp()
-
                 .AddField("Nickname:", suser.Nickname ?? "No nickname", true)
                 .AddField("ID:", suser.Id, true)
-
                 .AddField("Discriminator:", suser.Discriminator, true)
                 .AddField("Bot:", suser.IsBot, true)
-
                 .AddField("Created:", suser.CreatedAt.Date, true)
                 .AddField("Joined:", suser.JoinedAt.Value.Date, true)
-
                 .AddField("Highest Role:", suser.Roles.Last(), true)
-                .AddField("User Hierarchy:", $"{((suser.Hierarchy == int.MaxValue) ? "Guild Owner" : $"{ suser.Hierarchy}")}", true)
-
+                .AddField("User Hierarchy:",
+                    $"{(suser.Hierarchy == int.MaxValue ? "Guild Owner" : $"{suser.Hierarchy}")}", true)
                 .AddField("All Roles:", roles)
-
                 .AddField("Permissions:", perms)
-
                 .AddField("Playing:", suser.Activity?.Name ?? "Not currently playing anything", true)
-
                 .Build();
             await Context.Channel.SendMessageAsync(string.Empty, false, infoembed);
         }
@@ -179,21 +169,16 @@ namespace FruitMod.Commands
         [Summary("Shows the users avatar. Usage: avatar <user>(optional)")]
         public async Task Avatar([Remainder] IUser user = null)
         {
-
             if (user == null) user = Context.User;
 
             if (!(user is SocketGuildUser suser)) return;
 
             Color color;
 
-            if (!(suser.Roles.Contains(suser.Roles.LastOrDefault(x => x.Color != Color.Default))))
-            {
+            if (!suser.Roles.Contains(suser.Roles.LastOrDefault(x => x.Color != Color.Default)))
                 color = Color.DarkPurple;
-            }
             else
-            {
                 color = suser.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
-            }
 
             var embed = new EmbedBuilder()
                 .WithColor(color)
@@ -206,7 +191,12 @@ namespace FruitMod.Commands
         [Summary("Gives the bot owner feedback")]
         public async Task Feedback([Remainder] string message)
         {
-            if (feedback.ContainsKey(Context.User.Id) && feedback[Context.User.Id].Date == DateTime.Now.Date) { await ReplyAsync("You have already sent some feedback today!"); return; }
+            if (feedback.ContainsKey(Context.User.Id) && feedback[Context.User.Id].Date == DateTime.Now.Date)
+            {
+                await ReplyAsync("You have already sent some feedback today!");
+                return;
+            }
+
             feedback.Add(Context.User.Id, DateTime.Now);
             await _client.GetUser(386969677143736330).SendMessageAsync($"Feedback from {Context.User} : {message}");
             await ReplyAsync("Thank you! Your feedback has been sent to the bot owner!");
@@ -222,6 +212,7 @@ namespace FruitMod.Commands
                 await ReplyAsync("Nobody is blocked in this guild!");
                 return;
             }
+
             var blockedembed = new EmbedBuilder()
                 .WithColor(Color.Red)
                 .WithTitle("Block List")

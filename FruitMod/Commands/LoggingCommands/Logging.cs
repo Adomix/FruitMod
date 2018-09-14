@@ -1,15 +1,15 @@
-﻿using Discord;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Services;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FruitMod.Commands.LoggingCommands
 {
     public class Logging : ModuleBase<SocketCommandContext>
     {
-        private GuildService _guildService;
+        private readonly GuildService _guildService;
 
         public Logging(GuildService guildService)
         {
@@ -27,27 +27,25 @@ namespace FruitMod.Commands.LoggingCommands
 
                 Color color;
 
-                if ((!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default))))
-                {
+                if (!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default)))
                     color = Color.DarkPurple;
-                }
                 else
-                {
                     color = author.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
-                }
 
                 var embed = new EmbedBuilder()
                     .WithCurrentTimestamp()
                     .WithColor(color)
                     .WithAuthor(author)
-                    .WithTitle($"Sniped!")
+                    .WithTitle("Sniped!")
                     .AddField($"Mentions: ({message.MentionedUsers.Count})", string.Join(", ", message.MentionedUsers))
-                    .AddField($"Content:", message.Content)
+                    .AddField("Content:", message.Content)
                     .Build();
                 await ReplyAsync(string.Empty, false, embed);
             }
             else
+            {
                 await ReplyAsync("No messages with mentions found!");
+            }
         }
 
         [Command("grab")]
@@ -62,26 +60,24 @@ namespace FruitMod.Commands.LoggingCommands
 
                 Color color;
 
-                if ((!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default))))
-                {
+                if (!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default)))
                     color = Color.DarkPurple;
-                }
                 else
-                {
                     color = author.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
-                }
 
                 var embed = new EmbedBuilder()
                     .WithCurrentTimestamp()
                     .WithColor(color)
                     .WithAuthor(author)
-                    .WithTitle($"Grabbed the last deleted message!")
-                    .AddField($"Content:", message.Content)
+                    .WithTitle("Grabbed the last deleted message!")
+                    .AddField("Content:", message.Content)
                     .Build();
                 await ReplyAsync(string.Empty, false, embed);
             }
             else
+            {
                 await ReplyAsync("No messages found!");
+            }
         }
     }
 }

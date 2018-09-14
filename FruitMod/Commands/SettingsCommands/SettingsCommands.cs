@@ -8,8 +8,9 @@ using FruitMod.Preconditions;
 
 namespace FruitMod.SettingCommands
 {
-    [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.BanMembers, GuildPermission.KickMembers, GuildPermission.ManageMessages,
-                           GuildPermission.ManageChannels, Group = "settings")]
+    [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.BanMembers,
+        GuildPermission.KickMembers, GuildPermission.ManageMessages,
+        GuildPermission.ManageChannels, Group = "settings")]
     [RequireOwner(Group = "settings")]
     public class CustomSettings : ModuleBase<SocketCommandContext>
     {
@@ -79,6 +80,7 @@ namespace FruitMod.SettingCommands
                 await ReplyAsync("You must first set a log channel. Command: setchannel");
                 return;
             }
+
             dbo.Settings.LeaveSys = true;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("Leave logging has been successfully enabled!");
@@ -101,7 +103,8 @@ namespace FruitMod.SettingCommands
             await ReplyAsync("Deleted message logging enabled!");
         }
 
-        [Command("disable votekick", RunMode = RunMode.Async), Alias("dvk")]
+        [Command("disable votekick", RunMode = RunMode.Async)]
+        [Alias("dvk")]
         [Summary("Disables votekicking")]
         public async Task DisableVkick()
         {
@@ -111,7 +114,8 @@ namespace FruitMod.SettingCommands
             await ReplyAsync("votekick has been successfully disabled!");
         }
 
-        [Command("disable leave", RunMode = RunMode.Async), Alias("dleave")]
+        [Command("disable leave", RunMode = RunMode.Async)]
+        [Alias("dleave")]
         [Summary("Disables leave logs")]
         public async Task DisableLeave()
         {
@@ -121,7 +125,8 @@ namespace FruitMod.SettingCommands
             await ReplyAsync("Leave logging has been successfully disabled!");
         }
 
-        [Command("disable delete"), Alias("ddel")]
+        [Command("disable delete")]
+        [Alias("ddel")]
         [Summary("disable deleted message logging")]
         public async Task DeleteDisabled()
         {
@@ -135,7 +140,7 @@ namespace FruitMod.SettingCommands
         [Summary("Resets all the settings back to default!")]
         public async Task Reset()
         {
-            _db.StoreObject(new GuildObjects { }, Context.Guild.Id);
+            _db.StoreObject(new GuildObjects(), Context.Guild.Id);
             await ReplyAsync("Settings have been restored to default!");
         }
 
@@ -156,12 +161,14 @@ namespace FruitMod.SettingCommands
             public async Task PrefixAdd([Remainder] string prefix)
             {
                 var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-                dbo.Settings.Prefixes.Add(prefix+" ");
+                dbo.Settings.Prefixes.Add(prefix + " ");
                 _db.StoreObject(dbo, Context.Guild.Id);
                 if (dbo.Settings.InfoChannel != null)
                     await Context.Guild.GetTextChannel(dbo.Settings.InfoChannel.Value).ModifyAsync(x =>
-                        x.Topic = $"Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)} || More Help: https://discord.gg/NVjPVFX");
-                await ReplyAsync($"Prefix {prefix} has been added! Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)}");
+                        x.Topic =
+                            $"Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)} || More Help: https://discord.gg/NVjPVFX");
+                await ReplyAsync(
+                    $"Prefix {prefix} has been added! Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)}");
             }
 
             [Command("remove")]
@@ -169,12 +176,14 @@ namespace FruitMod.SettingCommands
             public async Task PrefixRemove([Remainder] string prefix)
             {
                 var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-                dbo.Settings.Prefixes.Remove(prefix+" ");
+                dbo.Settings.Prefixes.Remove(prefix + " ");
                 _db.StoreObject(dbo, Context.Guild.Id);
                 if (dbo.Settings.InfoChannel != null)
                     await Context.Guild.GetTextChannel(dbo.Settings.InfoChannel.Value).ModifyAsync(x =>
-                        x.Topic = $"Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)} || More Help: https://discord.gg/NVjPVFX");
-                await ReplyAsync($"Prefix {prefix} has been removed! Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)}");
+                        x.Topic =
+                            $"Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)} || More Help: https://discord.gg/NVjPVFX");
+                await ReplyAsync(
+                    $"Prefix {prefix} has been removed! Current prefixes: {string.Join(", ", dbo.Settings.Prefixes)}");
             }
 
             [Command]

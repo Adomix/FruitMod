@@ -16,7 +16,8 @@ namespace FruitMod.Services
         private readonly DbService _db;
         private readonly LoggingService _log;
 
-        public StatisticsService(DiscordSocketClient client, DbService db, CommandHandlingService commands, LoggingService log)
+        public StatisticsService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
+            LoggingService log)
         {
             _client = client;
             _db = db;
@@ -45,7 +46,8 @@ namespace FruitMod.Services
             Console.WriteLine("Joined " + guild.Name + " " + guild.Id, Color.Green);
             Console.WriteLine("Guild count: " + _client.Guilds.Count, Color.Magenta);
             Console.WriteLine("Total users affected: " + _client.Guilds.Sum(x => x.MemberCount), Color.Magenta);
-            await guild.Owner.SendMessageAsync($"Wow! Thanks for adding my bot, my name is Mango. I would like to know how you found it! Please tell me by typing `@FruitMod#2261 reply message here` thank you!");
+            await guild.Owner.SendMessageAsync(
+                "Wow! Thanks for adding my bot, my name is Mango. I would like to know how you found it! Please tell me by typing `@FruitMod#2261 reply message here` thank you!");
         }
 
         // _client.LeftGuild += LGuild;

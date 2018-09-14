@@ -48,16 +48,14 @@ namespace FruitMod.Services
                 {
                     var dbo = _db.GetById<GuildObjects>(guild.Id);
                     if (dbo == null)
-                        _db.StoreObject(new GuildObjects
-                        {
-
-                        }, guild.Id);
+                        _db.StoreObject(new GuildObjects(), guild.Id);
                     else
-                    {
                         _db.StoreObject(dbo, guild.Id);
-                    }
                 }
-                catch (Exception e) { Console.WriteLine(e.Message); }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             });
             return Task.CompletedTask;
         }

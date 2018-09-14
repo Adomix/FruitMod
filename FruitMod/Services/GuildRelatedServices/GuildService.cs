@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Database;
-using FruitMod.Objects;
 using FruitMod.Extensions;
-using System.Linq;
-using System.Collections.Generic;
+using FruitMod.Objects;
 
 namespace FruitMod.Services
 {
@@ -15,14 +15,13 @@ namespace FruitMod.Services
     public class GuildService
     {
         private readonly DiscordSocketClient _client;
-        private readonly DbService _db;
         private readonly CommandHandlingService _commands;
-        private readonly RatelimitService _rls;
+        private readonly DbService _db;
         private readonly LoggingService _log;
+        private readonly RatelimitService _rls;
 
-        public SortedDictionary<ulong, List<SocketUserMessage>> delmsgs { get; set; } = new SortedDictionary<ulong, List<SocketUserMessage>>();
-
-        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands, RatelimitService rls,
+        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
+            RatelimitService rls,
             LoggingService log)
         {
             _client = client;
@@ -31,6 +30,9 @@ namespace FruitMod.Services
             _rls = rls;
             _log = log;
         }
+
+        public SortedDictionary<ulong, List<SocketUserMessage>> delmsgs { get; set; } =
+            new SortedDictionary<ulong, List<SocketUserMessage>>();
 
         public void GuildServices()
         {
@@ -46,7 +48,7 @@ namespace FruitMod.Services
             {
                 if (!(msg.Channel is SocketTextChannel channel)) return;
                 if (_rls.rlb[channel.Id] == false) return;
-                if (!(_rls.msgdict.ContainsKey((channel.Id, msg.Author.Id))))
+                if (!_rls.msgdict.ContainsKey((channel.Id, msg.Author.Id)))
                 {
                     _rls.msgdict.Add((channel.Id, msg.Author.Id), DateTime.UtcNow);
                 }
@@ -85,15 +87,14 @@ namespace FruitMod.Services
 
                 if (!(msg is SocketUserMessage umsg)) return Task.CompletedTask;
 
-                if(delmsgs.Values.Count >= 50)
+                if (delmsgs.Values.Count >= 50)
                 {
                     delmsgs.OrderByDescending(x => x.Value);
                     delmsgs.RemoveNext(10);
                 }
+
                 if (!delmsgs.Keys.Contains((umsg.Channel as SocketTextChannel).Guild.Id))
-                {
-                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage>() { umsg });
-                }
+                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> {umsg});
                 else
                     delmsgs[(msg.Channel as SocketTextChannel).Guild.Id].Add(umsg);
 
@@ -115,15 +116,20 @@ namespace FruitMod.Services
                 else
                 {
                     var embed = new EmbedBuilder()
-                    .WithTitle("A message has been deleted!")
-                    .AddField($"User's {umsg.Author} message has been deleted!", Format.Code($"[{umsg.Content}]\nAttachments {umsg.Attachments.Count()}:[{attachment ?? "No attachment"}]", "ini"))
-                    .AddField($"From channel:", $"```ini\n[{umsg.Channel}]\n```")
-                    .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
-                    .WithColor(Color.Red)
-                    .Build();
-                    if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.Settings.LogChannel.Value) is SocketTextChannel newChannel)
+                        .WithTitle("A message has been deleted!")
+                        .AddField($"User's {umsg.Author} message has been deleted!",
+                            Format.Code(
+                                $"[{umsg.Content}]\nAttachments {umsg.Attachments.Count()}:[{attachment ?? "No attachment"}]",
+                                "ini"))
+                        .AddField("From channel:", $"```ini\n[{umsg.Channel}]\n```")
+                        .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
+                        .WithColor(Color.Red)
+                        .Build();
+                    if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.Settings.LogChannel.Value) is
+                        SocketTextChannel newChannel)
                         await newChannel.SendMessageAsync(string.Empty, false, embed);
                 }
+
                 return Task.CompletedTask;
             });
             return Task.CompletedTask;
@@ -165,6 +171,5 @@ namespace FruitMod.Services
                     user.AddRoleAsync(user.Guild.GetRole(dbo.Settings.MuteRole.Value));
             return Task.CompletedTask;
         }
-
     }
 }

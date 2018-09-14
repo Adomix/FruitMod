@@ -20,7 +20,7 @@ public class SilentCommand : PreconditionAttribute
             await context.Message.DeleteAsync();
             return PreconditionResult.FromSuccess();
         }
-        else
-            return PreconditionResult.FromError("Bot may not delete messages!");
+
+        return PreconditionResult.FromError("Bot may not delete messages!");
     }
 }

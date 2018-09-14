@@ -1,13 +1,12 @@
-﻿using FruitMod.Objects.DataClasses;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using FruitMod.Objects.DataClasses;
 
 namespace FruitMod.Objects
 {
     public class GuildObjects
     {
-        public UserSettings UserSettings = new UserSettings();
-
         public Settings Settings = new Settings();
+        public UserSettings UserSettings = new UserSettings();
 
         public ConcurrentDictionary<ulong, int> UserCurrency { get; set; } = new ConcurrentDictionary<ulong, int>();
 

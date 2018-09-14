@@ -41,8 +41,11 @@ namespace FruitMod.Commands.BotOwnerCommands
         public async Task Users()
         {
             var guilds = _client.Guilds;
-            var datastring = string.Join("\n\n", Context.Client.Guilds.Select(x => $"[Name: {x.Name}, ID: {x.Id}, Members: {x.MemberCount}, Owner: {x.Owner}]"));
-            await ReplyAsync($"Total Users: {guilds.Sum(x => x.MemberCount)} || Total Guilds: {guilds.Count}\n{Format.Code(datastring, "ini")}");
+            var datastring = string.Join("\n\n",
+                Context.Client.Guilds.Select(x =>
+                    $"[Name: {x.Name}, ID: {x.Id}, Members: {x.MemberCount}, Owner: {x.Owner}]"));
+            await ReplyAsync(
+                $"Total Users: {guilds.Sum(x => x.MemberCount)} || Total Guilds: {guilds.Count}\n{Format.Code(datastring, "ini")}");
         }
 
         [Command("leave")]
@@ -69,10 +72,15 @@ namespace FruitMod.Commands.BotOwnerCommands
                 var embed = new EmbedBuilder();
                 var sopts = ScriptOptions.Default;
                 var oldWriter = Console.Out;
-                IEnumerable<string> systems = new[] { "System", "System.Collections.Generic", "System.Linq", "System.Text", "System.Threading.Tasks", "System.Diagnostics", "Discord", "Discord.Commands", "Discord.WebSocket" };
+                IEnumerable<string> systems = new[]
+                {
+                    "System", "System.Collections.Generic", "System.Linq", "System.Text", "System.Threading.Tasks",
+                    "System.Diagnostics", "Discord", "Discord.Commands", "Discord.WebSocket"
+                };
                 var imports = _init.Namespaces.Concat(systems);
                 sopts = sopts.WithImports(imports);
-                sopts = sopts.WithReferences(AppDomain.CurrentDomain.GetAssemblies().Where(x => !x.IsDynamic && !string.IsNullOrWhiteSpace(x.Location)));
+                sopts = sopts.WithReferences(AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(x => !x.IsDynamic && !string.IsNullOrWhiteSpace(x.Location)));
                 var globals = new EvalGlobals
                 {
                     Context = Context,
@@ -87,7 +95,6 @@ namespace FruitMod.Commands.BotOwnerCommands
                 sw.Start();
                 try
                 {
-
                     using (var writer = new StreamWriter("out.txt"))
                     {
                         Console.SetOut(writer);

@@ -1,9 +1,9 @@
-﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Interactive.Callbacks;
 using FruitMod.Interactive.Criteria;
@@ -14,8 +14,6 @@ namespace FruitMod.Interactive
     [SetService]
     public class InteractiveService : IDisposable
     {
-        private DiscordSocketClient Discord { get; }
-
         private readonly Dictionary<ulong, IReactionCallback> _callbacks;
         private readonly TimeSpan _defaultTimeout;
 
@@ -28,7 +26,15 @@ namespace FruitMod.Interactive
             _defaultTimeout = defaultTimeout ?? TimeSpan.FromSeconds(15);
         }
 
-        public Task<SocketMessage> NextMessageAsync(ICommandContext context, bool fromSourceUser = true, bool inSourceChannel = true, TimeSpan? timeout = null)
+        private DiscordSocketClient Discord { get; }
+
+        public void Dispose()
+        {
+            Discord.ReactionAdded -= HandleReactionAsync;
+        }
+
+        public Task<SocketMessage> NextMessageAsync(ICommandContext context, bool fromSourceUser = true,
+            bool inSourceChannel = true, TimeSpan? timeout = null)
         {
             var criterion = new Criteria<SocketMessage>();
             if (fromSourceUser)
@@ -38,7 +44,8 @@ namespace FruitMod.Interactive
             return NextMessageAsync(context, criterion, timeout);
         }
 
-        public async Task<SocketMessage> NextMessageAsync(ICommandContext context, ICriterion<SocketMessage> criterion, TimeSpan? timeout = null)
+        public async Task<SocketMessage> NextMessageAsync(ICommandContext context, ICriterion<SocketMessage> criterion,
+            TimeSpan? timeout = null)
         {
             timeout = timeout ?? _defaultTimeout;
 
@@ -65,7 +72,8 @@ namespace FruitMod.Interactive
             return null;
         }
 
-        public async Task<IUserMessage> ReplyAndDeleteAsync(ICommandContext context, string content, bool isTTS = false, Embed embed = null, TimeSpan? timeout = null, RequestOptions options = null)
+        public async Task<IUserMessage> ReplyAndDeleteAsync(ICommandContext context, string content, bool isTTS = false,
+            Embed embed = null, TimeSpan? timeout = null, RequestOptions options = null)
         {
             timeout = timeout ?? _defaultTimeout;
             var message = await context.Channel.SendMessageAsync(content, isTTS, embed, options).ConfigureAwait(false);
@@ -75,7 +83,8 @@ namespace FruitMod.Interactive
             return message;
         }
 
-        public async Task<IUserMessage> SendPaginatedMessageAsync(SocketCommandContext context, PaginatedMessage pager, ICriterion<SocketReaction> criterion = null)
+        public async Task<IUserMessage> SendPaginatedMessageAsync(SocketCommandContext context, PaginatedMessage pager,
+            ICriterion<SocketReaction> criterion = null)
         {
             var callback = new PaginatedMessageCallback(this, context, pager, criterion);
             await callback.DisplayAsync().ConfigureAwait(false);
@@ -83,22 +92,31 @@ namespace FruitMod.Interactive
         }
 
         public void AddReactionCallback(IMessage message, IReactionCallback callback)
-            => _callbacks[message.Id] = callback;
+        {
+            _callbacks[message.Id] = callback;
+        }
 
         public void RemoveReactionCallback(IMessage message)
-            => RemoveReactionCallback(message.Id);
+        {
+            RemoveReactionCallback(message.Id);
+        }
 
         private void RemoveReactionCallback(ulong id)
-            => _callbacks.Remove(id);
+        {
+            _callbacks.Remove(id);
+        }
 
         public void ClearReactionCallbacks()
-            => _callbacks.Clear();
-        
-        private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            _callbacks.Clear();
+        }
+
+        private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
+            SocketReaction reaction)
         {
             if (reaction.UserId == Discord.CurrentUser.Id) return;
-            if (!(_callbacks.TryGetValue(message.Id, out var callback))) return;
-            if (!(await callback.Criterion.JudgeAsync(callback.Context, reaction).ConfigureAwait(false)))
+            if (!_callbacks.TryGetValue(message.Id, out var callback)) return;
+            if (!await callback.Criterion.JudgeAsync(callback.Context, reaction).ConfigureAwait(false))
                 return;
             switch (callback.RunMode)
             {
@@ -114,11 +132,6 @@ namespace FruitMod.Interactive
                         RemoveReactionCallback(message.Id);
                     break;
             }
-        }
-
-        public void Dispose()
-        {
-            Discord.ReactionAdded -= HandleReactionAsync;
         }
     }
 }

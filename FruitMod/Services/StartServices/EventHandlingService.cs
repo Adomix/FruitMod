@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Commands.AudioCommands;
 using FruitMod.Database;
-using FruitMod.Objects;
 using SharpLink;
 
 namespace FruitMod.Services

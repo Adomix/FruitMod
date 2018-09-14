@@ -1,23 +1,22 @@
 ﻿using System;
+using System.Configuration;
 using FruitMod.Attributes;
 using Raven.Client.Documents;
-using System.Configuration;
 
 namespace FruitMod.Database
 {
     [SetService]
     public class DbService
     {
-
         private readonly Lazy<IDocumentStore> _store = new Lazy<IDocumentStore>(CreateStore);
 
         private IDocumentStore Store => _store.Value;
 
         private static IDocumentStore CreateStore()
         {
-            var store = new DocumentStore()
+            var store = new DocumentStore
             {
-                Urls = new[] { ConfigurationManager.AppSettings["ip"] },
+                Urls = new[] {ConfigurationManager.AppSettings["ip"]},
                 Database = "BotDB"
             }.Initialize();
 

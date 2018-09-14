@@ -1,11 +1,13 @@
-﻿using Discord.Commands;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Discord.Commands;
 
 namespace FruitMod.Interactive.Criteria
 {
     public class EmptyCriterion<T> : ICriterion<T>
     {
         public Task<bool> JudgeAsync(ICommandContext sourceContext, T parameter)
-            => Task.FromResult(true);
+        {
+            return Task.FromResult(true);
+        }
     }
 }

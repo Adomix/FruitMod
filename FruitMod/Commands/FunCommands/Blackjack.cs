@@ -4,28 +4,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using FruitMod.Objects;
-using Discord.Addons.Interactive;
 
 namespace FruitMod.Commands.FunCommands
 {
     public partial class Fun : InteractiveBase
     {
+        private readonly IReadOnlyDictionary<string, int> _cards = new Dictionary<string, int>
+        {
+            {"ace", 1}, {"two", 2}, {"three", 3}, {"four", 4}, {"five", 5}, {"six", 6}, {"seven", 7},
+            {"eight", 8}, {"nine", 9}, {"ten", 10}, {"jack", 10}, {"queen", 10}, {"king", 10}
+        };
+
+        private readonly IReadOnlyCollection<string> _suits = new[] {"❤", "♦", "♣", "♠"};
         public bool blackjackResult;
 
-        private readonly IReadOnlyDictionary<string, int> _cards = new Dictionary<string, int> { { "ace", 1 }, { "two", 2 },{ "three", 3 }, { "four", 4 },{ "five", 5 },{ "six", 6 },{ "seven", 7 },
-            { "eight", 8 },{ "nine", 9 },{ "ten", 10 },{ "jack", 10 },{ "queen", 10 },{ "king", 10 }};
+        private readonly ConcurrentDictionary<KeyValuePair<string, int>, int> dduplicate =
+            new ConcurrentDictionary<KeyValuePair<string, int>, int>();
 
-        private readonly IReadOnlyCollection<string> _suits = new[] { "❤", "♦", "♣", "♠" };
+        private readonly List<int> dtvalues = new List<int>();
 
-        private ConcurrentDictionary<KeyValuePair<string, int>, int> duplicate = new ConcurrentDictionary<KeyValuePair<string, int>, int>();
-        private ConcurrentDictionary<KeyValuePair<string, int>, int> dduplicate = new ConcurrentDictionary<KeyValuePair<string, int>, int>();
-        private ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>> userData = new ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>>();
-        private ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>> userDData = new ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>>();
-        private List<int> values = new List<int>();
-        private List<int> dvalues = new List<int>();
-        private List<int> dtvalues = new List<int>();
+        private readonly ConcurrentDictionary<KeyValuePair<string, int>, int> duplicate =
+            new ConcurrentDictionary<KeyValuePair<string, int>, int>();
+
+        private readonly List<int> dvalues = new List<int>();
+
+        private readonly ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>> userData =
+            new ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>>();
+
+        private readonly ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>> userDData =
+            new ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>>();
+
+        private readonly List<int> values = new List<int>();
 
         public Embed MyEmbed(ulong id)
         {
@@ -61,37 +73,44 @@ namespace FruitMod.Commands.FunCommands
         public async Task Gamble(int bet)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (!dbo.UserCurrency.ContainsKey(Context.User.Id))
-            {
-                dbo.UserCurrency.TryAdd(Context.User.Id, 0);
-            }
+            if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
             userData.TryAdd(Context.User.Id, _deck);
             userDData.TryAdd(Context.User.Id, _deck);
             var mangos = dbo.UserCurrency[Context.User.Id];
-            if (bet > 0 && mangos < bet) { await ReplyAsync($"You do not have enough mangos to bet that! You have {mangos} Mangos!"); return; }
-            if (bet <= 0) { await ReplyAsync($"Bet must be greater than 0! You have {mangos} Mangos!"); return; }
+            if (bet > 0 && mangos < bet)
+            {
+                await ReplyAsync($"You do not have enough mangos to bet that! You have {mangos} Mangos!");
+                return;
+            }
+
+            if (bet <= 0)
+            {
+                await ReplyAsync($"Bet must be greater than 0! You have {mangos} Mangos!");
+                return;
+            }
+
             var embed = MyEmbed(Context.User.Id);
             await ReplyAsync($"You started a game of blackjack! You have bet {bet} Mangos!");
             var msg = await ReplyAsync(string.Empty, false, embed);
             var next = await ReplyAsync("Do you: hit:, stay, or double? You have 10 seconds to choose!", false, null);
             var reply = await NextMessageAsync(true, true, TimeSpan.FromSeconds(10));
-            if (reply.Content.Equals("hit", StringComparison.OrdinalIgnoreCase)) { await Hit(embed, msg, bet, next); }
-            if (reply.Content.Equals("stay", StringComparison.OrdinalIgnoreCase)) { await Stay(embed, next, bet); }
-            if (reply.Content.Equals("double", StringComparison.OrdinalIgnoreCase)) { await Double(next, bet, embed, msg); }
+            if (reply.Content.Equals("hit", StringComparison.OrdinalIgnoreCase)) await Hit(embed, msg, bet, next);
+            if (reply.Content.Equals("stay", StringComparison.OrdinalIgnoreCase)) await Stay(embed, next, bet);
+            if (reply.Content.Equals("double", StringComparison.OrdinalIgnoreCase)) await Double(next, bet, embed, msg);
         }
 
         public async Task Hit(Embed embed, IUserMessage next, int bet, IUserMessage msg)
         {
             var deck = userData[Context.User.Id];
             var ddeck = userDData[Context.User.Id];
-            if (dvalues.Sum() < 16) { await DealerHit(embed, msg, bet, next); }
+            if (dvalues.Sum() < 16) await DealerHit(embed, msg, bet, next);
             await next.DeleteAsync();
             var card = deck.Dequeue();
             var suit = card.suit;
             var value = card.value;
             var field = embed.Fields.FirstOrDefault(x => x.Name.Contains("cards"));
             var dfield = embed.Fields.FirstOrDefault(x => x.Name.Contains("Dealers"));
-            if (duplicate.ContainsKey(new KeyValuePair<string, int>(suit, value))) { await Hit(embed, msg, bet, next); }
+            if (duplicate.ContainsKey(new KeyValuePair<string, int>(suit, value))) await Hit(embed, msg, bet, next);
             values.Add(value);
             duplicate.TryAdd(new KeyValuePair<string, int>(suit, value), duplicate.Keys.Count + 1);
             var newembed = new EmbedBuilder()
@@ -104,12 +123,13 @@ namespace FruitMod.Commands.FunCommands
                 .AddField("Available choices:", "Hit, Stay, Double")
                 .Build();
             await msg.ModifyAsync(x => x.Embed = newembed);
-            if (values.Sum() > 21 || dtvalues.Sum() >21) { await WinLose(values.Sum(), dtvalues.Sum(), bet); }
+            if (values.Sum() > 21 || dtvalues.Sum() > 21) await WinLose(values.Sum(), dtvalues.Sum(), bet);
             var nextmsg = await ReplyAsync("Do you: hit, stay, or double? You have 10 seconds to choose!", false, null);
             var reply = await NextMessageAsync(true, true, TimeSpan.FromSeconds(10));
-            if (reply.Content.Equals("hit", StringComparison.OrdinalIgnoreCase)) { await Hit(newembed, msg, bet, nextmsg); }
-            if (reply.Content.Equals("stay", StringComparison.OrdinalIgnoreCase)) { await Stay(newembed, nextmsg, bet); }
-            if (reply.Content.Equals("double", StringComparison.OrdinalIgnoreCase)) { await Double(nextmsg, bet, embed, msg); }
+            if (reply.Content.Equals("hit", StringComparison.OrdinalIgnoreCase)) await Hit(newembed, msg, bet, nextmsg);
+            if (reply.Content.Equals("stay", StringComparison.OrdinalIgnoreCase)) await Stay(newembed, nextmsg, bet);
+            if (reply.Content.Equals("double", StringComparison.OrdinalIgnoreCase))
+                await Double(nextmsg, bet, embed, msg);
         }
 
         public async Task DealerHit(Embed embed, IUserMessage next, int bet, IUserMessage msg = null)
@@ -120,29 +140,35 @@ namespace FruitMod.Commands.FunCommands
             var dfield = embed.Fields.FirstOrDefault(x => x.Name.Contains("Dealers"));
             if (dvalues.Sum() < 16)
             {
-                var card = ddeck.Dequeue(); dvalues.Add(card.value); dtvalues.Add(card.value); var type = card.card; var suit = card.suit;
+                var card = ddeck.Dequeue();
+                dvalues.Add(card.value);
+                dtvalues.Add(card.value);
+                var type = card.card;
+                var suit = card.suit;
                 var newembed = new EmbedBuilder()
-                .WithColor(Color.LightOrange)
-                .WithTitle("Blackjack!")
-                .AddField("Your cards:", $"{field.Value}")
-                .AddField("Card total:", $"{values.Sum()}")
-                .AddField("Dealers visible cards:", $"{dfield.Value} ({type} of {suit})")
-                .AddField("Dealers visible total:", $"{dvalues.Sum()}")
-                .AddField("Available choices:", "Hit, Stay, Double")
-                .Build();
+                    .WithColor(Color.LightOrange)
+                    .WithTitle("Blackjack!")
+                    .AddField("Your cards:", $"{field.Value}")
+                    .AddField("Card total:", $"{values.Sum()}")
+                    .AddField("Dealers visible cards:", $"{dfield.Value} ({type} of {suit})")
+                    .AddField("Dealers visible total:", $"{dvalues.Sum()}")
+                    .AddField("Available choices:", "Hit, Stay, Double")
+                    .Build();
                 await DealerHit(newembed, msg, bet, next);
             }
+
             await Hit(embed, msg, bet, next);
         }
 
         public async Task Stay(Embed embed, IUserMessage next, int bet)
         {
-            if (dvalues.Sum() < 16) { await DealerHitStay(embed, next, bet); }
+            if (dvalues.Sum() < 16) await DealerHitStay(embed, next, bet);
             await ReplyAsync($"You have chosen to stay at a total of {values.Sum()}! Lets check what the dealer has!");
-            var msg = await ReplyAsync($"Come on now.... don't be shy.");
+            var msg = await ReplyAsync("Come on now.... don\'t be shy.");
             await Task.Delay(3000);
             await msg.ModifyAsync(x => x.Content = $"Aha! The dealer has a total of {dtvalues.Sum()}!");
         }
+
         public async Task DealerHitStay(Embed embed, IUserMessage next, int bet)
         {
             var deck = userData[Context.User.Id];
@@ -151,18 +177,23 @@ namespace FruitMod.Commands.FunCommands
             var dfield = embed.Fields.FirstOrDefault(x => x.Name.Contains("Dealers"));
             if (dvalues.Sum() < 16)
             {
-                var card = ddeck.Dequeue(); dvalues.Add(card.value); dtvalues.Add(card.value); var type = card.card; var suit = card.suit;
+                var card = ddeck.Dequeue();
+                dvalues.Add(card.value);
+                dtvalues.Add(card.value);
+                var type = card.card;
+                var suit = card.suit;
                 var newembed = new EmbedBuilder()
-                .WithColor(Color.LightOrange)
-                .WithTitle("Blackjack!")
-                .AddField("Your cards:", $"{field.Value}")
-                .AddField("Card total:", $"{values.Sum()}")
-                .AddField("Dealers visible cards:", $"{dfield.Value} ({type} of {suit})")
-                .AddField("Dealers visible total:", $"{dvalues.Sum()}")
-                .AddField("Available choices:", "Hit, Stay, Double")
-                .Build();
+                    .WithColor(Color.LightOrange)
+                    .WithTitle("Blackjack!")
+                    .AddField("Your cards:", $"{field.Value}")
+                    .AddField("Card total:", $"{values.Sum()}")
+                    .AddField("Dealers visible cards:", $"{dfield.Value} ({type} of {suit})")
+                    .AddField("Dealers visible total:", $"{dvalues.Sum()}")
+                    .AddField("Available choices:", "Hit, Stay, Double")
+                    .Build();
                 await DealerHitStay(newembed, next, bet);
             }
+
             await WinLose(values.Sum(), dvalues.Sum(), bet);
         }
 
@@ -177,10 +208,11 @@ namespace FruitMod.Commands.FunCommands
             var value = card.value;
             var field = embed.Fields.FirstOrDefault(x => x.Name.Contains("cards"));
             var dfield = embed.Fields.FirstOrDefault(x => x.Name.Contains("Dealers"));
-            if (duplicate.ContainsKey(new KeyValuePair<string, int>(suit, value))) { await Double(next, bet, embed, msg); }
+            if (duplicate.ContainsKey(new KeyValuePair<string, int>(suit, value))) await Double(next, bet, embed, msg);
             values.Add(value);
             duplicate.TryAdd(new KeyValuePair<string, int>(suit, value), duplicate.Keys.Count + 1);
-            await ReplyAsync($"Are you crazy?? You just doubled your bet {bet}! You have placed {bet * 2} on the line!");
+            await ReplyAsync(
+                $"Are you crazy?? You just doubled your bet {bet}! You have placed {bet * 2} on the line!");
             var newembed = new EmbedBuilder()
                 .WithColor(Color.LightOrange)
                 .WithTitle("Blackjack!")
@@ -197,7 +229,7 @@ namespace FruitMod.Commands.FunCommands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var userMangos = dbo.UserCurrency[Context.User.Id];
-            int mangos = bet * _random.Next(1, 4);
+            var mangos = bet * _random.Next(1, 4);
             bool? win = null;
             if (player == dealer)
             {
@@ -213,7 +245,6 @@ namespace FruitMod.Commands.FunCommands
             {
                 await ReplyAsync($"You won! Dealer busted! You won {mangos} mangos!");
                 win = true;
-
             }
             else if (player > 21 && dealer > 21)
             {
@@ -239,6 +270,7 @@ namespace FruitMod.Commands.FunCommands
             {
                 await ReplyAsync("Push! You keep your Mangos!");
             }
+
             await MangosUpdate(win, userMangos);
         }
 
@@ -246,7 +278,7 @@ namespace FruitMod.Commands.FunCommands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var userMangos = dbo.UserCurrency[Context.User.Id];
-            if ((win == true) && (userMangos + mangos >= int.MaxValue))
+            if (win == true && userMangos + mangos >= int.MaxValue)
             {
                 mangos = int.MaxValue - userMangos;
                 await ReplyAsync($"You can't have over {int.MaxValue} Mangos! Giving you the difference.");
@@ -259,8 +291,9 @@ namespace FruitMod.Commands.FunCommands
             {
                 userMangos = userMangos - mangos;
             }
+
             dbo.UserCurrency[Context.User.Id] = userMangos;
-            _db.StoreObject<GuildObjects>(dbo, Context.Guild.Id);
+            _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"You now have {userMangos} Mangos!");
         }
     }

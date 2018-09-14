@@ -11,17 +11,10 @@ namespace FruitMod.Interactive.Paginator
 {
     public class PaginatedMessageCallback : IReactionCallback, ICallback
     {
+        private readonly InteractiveService _interactive;
         private readonly PaginatedMessage _pager;
         private readonly int _pages;
-        private readonly InteractiveService _interactive;
         private int _page = 1;
-        private PaginatedAppearanceOptions Options => _pager.Options;
-
-        public IUserMessage Message { get; private set; }
-        public ICommandContext Context { get; }
-        public RunMode RunMode => RunMode.Sync;
-        public ICriterion<SocketReaction> Criterion { get; }
-        public TimeSpan? Timeout => TimeSpan.FromMinutes(2);
 
         public PaginatedMessageCallback(InteractiveService interactive,
             ICommandContext sourceContext,
@@ -33,6 +26,10 @@ namespace FruitMod.Interactive.Paginator
             _pager = pager;
             _pages = _pager.Pages.Count();
         }
+
+        private PaginatedAppearanceOptions Options => _pager.Options;
+
+        public IUserMessage Message { get; private set; }
 
         public async Task DisplayAsync()
         {
@@ -69,6 +66,11 @@ namespace FruitMod.Interactive.Paginator
                 });
         }
 
+        public ICommandContext Context { get; }
+        public RunMode RunMode => RunMode.Sync;
+        public ICriterion<SocketReaction> Criterion { get; }
+        public TimeSpan? Timeout => TimeSpan.FromMinutes(2);
+
         public async Task<bool> HandleCallbackAsync(SocketReaction reaction)
         {
             var emote = reaction.Emote;
@@ -84,6 +86,7 @@ namespace FruitMod.Interactive.Paginator
                     _page = 1;
                     return false;
                 }
+
                 ++_page;
             }
             else if (emote.Equals(Options.Back))
@@ -93,6 +96,7 @@ namespace FruitMod.Interactive.Paginator
                     _page = _pages;
                     return false;
                 }
+
                 --_page;
             }
             else if (emote.Equals(Options.Last))

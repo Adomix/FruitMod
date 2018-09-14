@@ -8,14 +8,15 @@ using FruitMod.Services;
 
 namespace FruitMod.Commands
 {
-    [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
+    [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages,
+        GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
     [RequireOwner(Group = "admin")]
     [Group("rl")]
     public class Ratelimits : ModuleBase<SocketCommandContext>
     {
-        private readonly DbService _db;
-        private RatelimitService _rls;
         private readonly DiscordSocketClient _client;
+        private readonly DbService _db;
+        private readonly RatelimitService _rls;
 
         public Ratelimits(DbService db, RatelimitService rls, DiscordSocketClient client)
         {
@@ -47,6 +48,7 @@ namespace FruitMod.Commands
                 await ReplyAsync("Time must be greater than 0!");
                 return;
             }
+
             _rls.rlb.Add(Context.Channel.Id, true);
             _rls.time = time;
             await ReplyAsync($"chat ratelimiting has been turned on! Interval time: {time} second(s)!");

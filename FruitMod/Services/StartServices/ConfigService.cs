@@ -28,9 +28,9 @@ namespace FruitMod.Services
         {
             Console.ResetColor();
             var config = new DiscordSocketConfig
-            { MessageCacheSize = 100, LogLevel = LogSeverity.Verbose, AlwaysDownloadUsers = false };
+                {MessageCacheSize = 100, LogLevel = LogSeverity.Verbose, AlwaysDownloadUsers = false};
             var sconfig = new CommandServiceConfig
-            { CaseSensitiveCommands = false, LogLevel = LogSeverity.Debug };
+                {CaseSensitiveCommands = false, LogLevel = LogSeverity.Debug};
             _client = new DiscordSocketClient(config);
             _http = new HttpClient();
             _log = new LoggingService();

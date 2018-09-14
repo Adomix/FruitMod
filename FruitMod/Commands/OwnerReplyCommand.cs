@@ -1,8 +1,8 @@
-﻿using Discord;
+﻿using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Preconditions;
-using System.Threading.Tasks;
 
 namespace FruitMod.Commands.FeedbackCommands
 {
@@ -15,6 +15,7 @@ namespace FruitMod.Commands.FeedbackCommands
         {
             _client = client;
         }
+
         [RequireGuildOwner]
         [Command("reply")]
         [Summary("replys to the bot's join message to the owner")]
