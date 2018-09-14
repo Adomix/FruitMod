@@ -27,9 +27,8 @@ namespace FruitMod.Commands
         [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
         [Command("kick")]
         [Summary("Bans targeted user, usage: kick <user> <reason(optional>")]
-        public async Task Kick(IUser user, [Remainder] string reason = null)
+        public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
-            if (reason == null) reason = "x";
             await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user, 0, $"{reason}");
             await Context.Guild.RemoveBanAsync(user);
@@ -38,9 +37,8 @@ namespace FruitMod.Commands
         [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
         [Command("ban")]
         [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason(optional>")]
-        public async Task Ban(IUser user, int time = 0, [Remainder] string reason = null)
+        public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
-            if (reason == null) reason = "x";
             await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user, time, $"{reason}");
         }
@@ -58,7 +56,7 @@ namespace FruitMod.Commands
         [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
         [Command("mute", RunMode = RunMode.Async)]
         [Summary("Text mutes or unmutes a user!")]
-        public async Task Mute(IUser user)
+        public async Task Mute([Remainder] IUser user)
         {
             if (user is null) await ReplyAsync("User not found!");
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
@@ -91,7 +89,7 @@ namespace FruitMod.Commands
         [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
         [Command("vmute")]
         [Summary("Mutes or unmutes the targeted user, usage: !admin mute <user> <reason(optional>")]
-        public async Task VMute(IGuildUser user, [Remainder] string reason = null)
+        public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
         {
             if (!user.IsMuted)
             {
@@ -111,7 +109,7 @@ namespace FruitMod.Commands
         [RequireAnyUserPermAttribute(GuildPermission.MuteMembers, GuildPermission.ManageRoles, GuildPermission.ManageMessages, Group = "admin")]
         [Command("vblock")]
         [Summary("Mutes & deafens or mutes & undeafens the targeted user, usage: !admin block <user> <reason(optional>")]
-        public async Task VBlock(IGuildUser user, string reason)
+        public async Task VBlock(IGuildUser user, string reason = "x")
         {
             if (!user.IsMuted)
             {
@@ -131,7 +129,7 @@ namespace FruitMod.Commands
         [RequireAnyUserPermAttribute(GuildPermission.Administrator, GuildPermission.ManageChannels, GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers, GuildPermission.BanMembers, Group = "admin")]
         [Command("block", RunMode = RunMode.Async)]
         [Summary("Blocks or unblocks a user from using the bot!")]
-        public async Task Block(IUser user)
+        public async Task Block([Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var guildId = Context.Guild.Id;
@@ -223,7 +221,7 @@ namespace FruitMod.Commands
         [RequireOwner(Group = "admin")]
         [Command("agive")]
         [Summary("gives x of mangos. Usage: agive 10 user")]
-        public async Task AGive(int amount, IUser user)
+        public async Task AGive(int amount, [Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserCurrency.ContainsKey(user.Id))
@@ -245,7 +243,7 @@ namespace FruitMod.Commands
         [RequireOwner(Group = "admin")]
         [Command("agive")]
         [Summary("gives x of mangos. Usage: agive 10 @everyone")]
-        public async Task AGive(int amount, IRole role)
+        public async Task AGive(int amount, [Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (role == null) { await ReplyAsync("You must specify a role!"); return; }
@@ -291,7 +289,7 @@ namespace FruitMod.Commands
         [RequireOwner(Group = "admin")]
         [Command("mangor", RunMode = RunMode.Async)]
         [Summary("Resets everyones mangos. Usage: mangor user")]
-        public async Task MangoR(IUser user)
+        public async Task MangoR([Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserCurrency.ContainsKey(Context.User.Id))
