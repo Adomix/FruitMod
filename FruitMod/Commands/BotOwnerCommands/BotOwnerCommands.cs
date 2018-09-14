@@ -183,7 +183,7 @@ namespace FruitMod.Commands.BotOwnerCommands
         {
             if (Context.Message.Content.Contains("echo"))
             {
-                await ReplyAsync($"{input}");
+                await ReplyAsync(input);
             }
             else
             {
