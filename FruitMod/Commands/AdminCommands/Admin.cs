@@ -39,11 +39,7 @@ namespace FruitMod.Commands
         [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason>(optional)")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
-            try
-            {
-                await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
-            }
-            catch (HttpException) {}
+            await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user.Id, time, $"{reason}");
         }
 
