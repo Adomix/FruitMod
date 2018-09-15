@@ -69,7 +69,7 @@ namespace FruitMod.Commands.FunCommands
 
         [RequireContext(ContextType.Guild)]
         [Command("blackjack", RunMode = RunMode.Async)]
-        [Summary("Starts a round of blackjack usage: gamble <amount of mangos>")]
+        [Summary("Starts a round of blackjack Usage: gamble <amount of mangos>")]
         public async Task Gamble(int bet)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);

@@ -9,7 +9,7 @@ using QuickType;
 
 namespace FruitMod.Commands.NSFWCommands
 {
-    public class NSFW : ModuleBase<SocketCommandContext>
+    public class NSFW : ModuleBase<FruitModContext>
     {
         private readonly HttpClient _http;
         private readonly Random _random;

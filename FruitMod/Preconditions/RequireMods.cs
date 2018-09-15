@@ -16,7 +16,7 @@ namespace FruitMod.Preconditions
         {
             var db = services.GetService<DbService>();
             var dbo = db.GetById<GuildObjects>(context.Guild.Id);
-            var ids = dbo.Settings.ModRoles.Select(x => x.Id);
+            var ids = dbo.Settings.ModRoles;
 
             if (!(context.User is IGuildUser user)) return Task.FromResult(PreconditionResult.FromError("This command may only be used in a guild."));
 

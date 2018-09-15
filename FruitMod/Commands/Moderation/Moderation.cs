@@ -15,8 +15,8 @@ namespace FruitMod.Commands
     [RequireMods(Group = "Moderation")]
     [RequireGuildOwner(Group = "Moderation")]
     [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Moderation")]
-    [RequireOwner(Group = "Moderatinon")]
-    public class Moderation : ModuleBase<SocketCommandContext>
+    [RequireOwner(Group = "Moderation")]
+    public class Moderation : ModuleBase<FruitModContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly DbService _db;
@@ -28,7 +28,7 @@ namespace FruitMod.Commands
         }
 
         [Command("kick")]
-        [Summary("Kicks targeted user, usage: kick <user> <reason(optional)>")]
+        [Summary("Kicks targeted user, Usage: kick <user> <reason(optional)>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
             await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
@@ -37,7 +37,7 @@ namespace FruitMod.Commands
         }
 
         [Command("ban")]
-        [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason(optional)>")]
+        [Summary("Bans targeted user, Usage: ban <user> <length>(optional, default is perm) <reason(optional)>")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
             await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
@@ -50,6 +50,28 @@ namespace FruitMod.Commands
         {
             var bans = await Context.Guild.GetBansAsync();
             await ReplyAsync(string.Join("\n", bans));
+        }
+
+        [Command("slowmode")]
+        [Summary("Enables slowmode, Usage: slowmode <time>(seconds)")]
+        public async Task Slowmode(int time)
+        {
+            await Context.Channel.ModifyAsync(x => x.SlowModeInterval = time);
+            await ReplyAsync($"Users may now send 1 message every {time} seconds!");
+        }
+
+        [Command("slowmode off")]
+        [Summary("Disables Slowmode")]
+        public async Task SlowmodeOff()
+        {
+            if(!(Context.Channel.SlowModeInterval > 0))
+            {
+                await ReplyAsync("This channel is currently not in slowmode!");
+                return;
+            }
+
+            await Context.Channel.ModifyAsync(x => x.SlowModeInterval = 0);
+            await ReplyAsync($"Slowmode has been disabled! Users may now chat regularly again!");
         }
 
         [Command("mute", RunMode = RunMode.Async)]
@@ -86,7 +108,7 @@ namespace FruitMod.Commands
         }
 
         [Command("vmute")]
-        [Summary("Mutes or unmutes the targeted user, usage: !admin mute <user> <reason(optional>")]
+        [Summary("Mutes or unmutes the targeted user, Usage: !admin mute <user> <reason(optional>")]
         public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
         {
             if (user is null) return;
@@ -95,7 +117,7 @@ namespace FruitMod.Commands
         }
 
         [Command("vblock")]
-        [Summary("Mutes & deafens or mutes & undeafens the targeted user, usage: !admin block <user> <reason(optional>")]
+        [Summary("Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
         public async Task VBlock(IGuildUser user, [Remainder] string reason = "x")
         {
             await user.ModifyAsync((x) =>
@@ -137,7 +159,7 @@ namespace FruitMod.Commands
         }
 
         [Command("clear", RunMode = RunMode.Async)]
-        [Summary("Clears X amount of messages, usage: !admin clear <# of messages>")]
+        [Summary("Clears X amount of messages, Usage: !admin clear <# of messages>")]
         public async Task Clear(int msgs = 5)
         {
             if (msgs > 100)
@@ -154,7 +176,7 @@ namespace FruitMod.Commands
         }
 
         [Command("purge", RunMode = RunMode.Async)]
-        [Summary("Purges a user, usage: !admin purge <user> <amount(default 500)>")]
+        [Summary("Purges a user, Usage: !admin purge <user> <amount(default 500)>")]
         public async Task Purge(IUser user, int amount = 500)
         {
             var channel = Context.Channel as ITextChannel;
@@ -165,6 +187,45 @@ namespace FruitMod.Commands
                        select message;
             await channel?.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
+        }
+
+        [Command("role add")]
+        [Summary("Adds someone a role. Usage role give <user> <role>")]
+        public async Task RoleGive(IUser user, [Remainder] IRole role)
+        {
+            if (!(user is IGuildUser guser)) return;
+            await guser.AddRoleAsync(role);
+            await ReplyAsync($"Role {role} added to {user}!");
+        }
+
+        [Command("role add")]
+        [Summary("Adds everyone a role. Usage: role give <role>")]
+        public async Task RoleGive([Remainder] IRole role)
+        {
+            await Task.WhenAll(Context.Guild.Users.Select(x => x.AddRoleAsync(role)));
+            await ReplyAsync($"Role {role} added to everyone!");
+        }
+
+        [Command("role del")]
+        [Summary("Deletes a role from someone. Usage: role del <user> <role>")]
+        public async Task RoleDel(IUser user, [Remainder] IRole role)
+        {
+            if (!(user is IGuildUser guser)) return;
+            if (guser.RoleIds.Contains(role.Id))
+            {
+                await ReplyAsync($"User does not have role {role}!");
+                return;
+            }
+            await guser.RemoveRoleAsync(role);
+            await ReplyAsync($"Role {role} has been removed from {guser}!");
+        }
+
+        [Command("role del")]
+        [Summary("Deletes a role from everyone. Usage: role del<role>")]
+        public async Task RoleDel([Remainder] IRole role)
+        {
+            await Task.WhenAll(Context.Guild.Users.Select(x => x.RemoveRoleAsync(role)));
+            await ReplyAsync($"Role {role} has been removed from everyone!");
         }
 
         [Command(".fm", RunMode = RunMode.Async)]
@@ -187,7 +248,12 @@ namespace FruitMod.Commands
         public async Task Mods()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            await ReplyAsync(string.Join("\n", dbo.Settings.ModRoles.Select(x => x.Name)));
+            var roles = new List<IRole>();
+            foreach(var id in dbo.Settings.ModRoles)
+            {
+                roles.Add(Context.Guild.GetRole(id));
+            }
+            await ReplyAsync(string.Join("\n", roles.Select(x => x.Name)));
         }
 
         [Command("mangos give")]

@@ -75,7 +75,7 @@ namespace FruitMod.Services
                 if (!dbo.Settings.DeleteSys) return Task.CompletedTask;
 
                 if (umsg.HasAttachments())
-                    attachment = msg.Attachments.FirstOrDefault().Url;
+                    attachment = msg.Attachments.FirstOrDefault()?.Url;
                 else
                     attachment = null;
 
@@ -140,16 +140,21 @@ namespace FruitMod.Services
         {
             var dbo = _db.GetById<GuildObjects>(user.Guild.Id);
             if (dbo.Settings.AutoRoles.Count <= 0) return;
-            await user.AddRolesAsync(dbo.Settings.AutoRoles);
+            var roles = new List<IRole>();
+            foreach (var id in dbo.Settings.AutoRoles)
+            {
+                roles.Add(user.Guild.GetRole(id));
+            }
+            await user.AddRolesAsync(roles);
         }
 
         // _client.Joined += CheckMuted;
         private Task CheckMuted(SocketGuildUser user)
         {
             var dbo = _db.GetById<GuildObjects>(user.Guild.Id);
-            if (dbo.UserSettings.MutedUsers.Contains(user.Id))
-                if (dbo.Settings.MuteRole != null)
-                    user.AddRoleAsync(user.Guild.GetRole(dbo.Settings.MuteRole.Value));
+            if (!dbo.UserSettings.MutedUsers.Contains(user.Id)) return Task.CompletedTask;
+            if (dbo.Settings.MuteRole != null)
+                user.AddRoleAsync(user.Guild.GetRole(dbo.Settings.MuteRole.Value));
             return Task.CompletedTask;
         }
     }

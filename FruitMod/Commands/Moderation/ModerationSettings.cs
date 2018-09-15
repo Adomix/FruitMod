@@ -8,11 +8,11 @@ using FruitMod.Preconditions;
 
 namespace FruitMod.Commands
 {
-    [RequireMods(Group = "Moderator")]
+    [RequireMods(Group = "Moderation")]
     [RequireGuildOwner(Group = "Moderation")]
     [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Moderation")]
     [RequireOwner(Group = "Moderation")]
-    public class ModerationSettings : ModuleBase<SocketCommandContext>
+    public class ModerationSettings : ModuleBase<FruitModContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly DbService _db;
@@ -96,21 +96,31 @@ namespace FruitMod.Commands
             await ReplyAsync($"Mute role has been updated to {role.Name}!");
         }
 
-        [Command("role add", RunMode = RunMode.Async)]
+        [Command("autorole add", RunMode = RunMode.Async)]
         [Summary("Adds a role to the autorole")]
         public async Task AutoRoleAdd([Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.Settings.AutoRoles.Add(role);
+            dbo.Settings.AutoRoles.Add(role.Id);
+            _db.StoreObject(dbo, Context.Guild.Id);
+
+            if ((!dbo.Settings.AutoRoles.Contains(role.Id)))
+            {
+                await ReplyAsync("Role failed to add!");
+                return;
+            }
+
             await ReplyAsync($"New users will now automatically receive {role.Name}!");
         }
 
-        [Command("role del", RunMode = RunMode.Async)]
+        [Command("autorole del", RunMode = RunMode.Async)]
         [Summary("Deletes a role to the autorole")]
         public async Task AutoRoleDel([Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.Settings.AutoRoles.Remove(role);
+            dbo.Settings.AutoRoles.Remove(role.Id);
+            _db.StoreObject(dbo, Context.Guild.Id);
+
             await ReplyAsync($"New users will no longer automatically receive {role.Name}!");
         }
 

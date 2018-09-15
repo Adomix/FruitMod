@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Database;
 
@@ -11,7 +10,7 @@ namespace FruitMod.Commands.BotOwnerCommands
     public class EvalGlobals
     {
         public DbService db;
-        public SocketCommandContext Context { get; set; }
+        public FruitModContext Context { get; set; }
         public SocketUserMessage Message { get; set; }
         public HttpClient HttpClient { get; set; }
         public IServiceProvider Services { get; set; }

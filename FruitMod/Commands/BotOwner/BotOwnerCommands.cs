@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Scripting;
 namespace FruitMod.Commands.BotOwnerCommands
 {
     [RequireOwner]
-    public class BotOwnerCommands : ModuleBase<SocketCommandContext>
+    public class BotOwnerCommands : ModuleBase<FruitModContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly DbService _db;
@@ -84,7 +84,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                 var globals = new EvalGlobals
                 {
                     Context = Context,
-                    Message = Context.Message,
+                    Message = Context.SMessage,
                     Services = _services,
                     HttpClient = _http,
                     db = _db

@@ -7,6 +7,7 @@ using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Objects;
+using FruitMod.Commands;
 
 namespace FruitMod.Services
 {
@@ -51,7 +52,7 @@ namespace FruitMod.Services
                     var argPos = 0;
                     if (!(prefixes.Any(x => message.HasStringPrefix(x, ref argPos)) ||
                           message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
-                    var context = new SocketCommandContext(_client, message);
+                    var context = new FruitModContext(_client, message);
                     var result = await _commands.ExecuteAsync(context, argPos, _services);
                     var logMessage = new LogMessage(LogSeverity.Error, "CommandHandler",
                         $"{result.ErrorReason}: => \"{messageParam.Content}\"");

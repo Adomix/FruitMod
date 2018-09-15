@@ -10,7 +10,7 @@ using FruitMod.Objects;
 namespace FruitMod.Commands.FunCommands
 {
     [RequireContext(ContextType.Guild)]
-    public class Mangos : ModuleBase<SocketCommandContext>
+    public class Mangos : ModuleBase<FruitModContext>
     {
         private static readonly Dictionary<(ulong, ulong), DateTime> feedback =
             new Dictionary<(ulong, ulong), DateTime>();

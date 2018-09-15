@@ -14,7 +14,7 @@ using Humanizer;
 
 namespace FruitMod.Commands
 {
-    public class General : ModuleBase<SocketCommandContext>
+    public class General : ModuleBase<FruitModContext>
     {
         private static readonly Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
         private readonly DiscordSocketClient _client;
@@ -36,8 +36,7 @@ namespace FruitMod.Commands
         {
             var botInfo = await Context.Client.GetApplicationInfoAsync();
             var time = DateTime.Now - Process.GetCurrentProcess().StartTime;
-            await ReplyAsync(
-                $"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
+            await ReplyAsync($"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
         }
 
         [Command("discord")]
@@ -79,7 +78,7 @@ namespace FruitMod.Commands
         }
 
         [Command("votekick", RunMode = RunMode.Async)]
-        [Summary("Vote kicks a member, usage: votekick <user> <reason(optional)>")]
+        [Summary("Vote kicks a member, Usage: votekick <user> <reason(optional)>")]
         public async Task VoteKick(IUser user, [Remainder] string reason = null)
         {
             if (_db.GetById<GuildObjects>(Context.Guild.Id) == null)
@@ -127,7 +126,7 @@ namespace FruitMod.Commands
         }
 
         [Command("userinfo", RunMode = RunMode.Async)]
-        [Summary("Gathers info on a user, usage: userinfo <user>")]
+        [Summary("Gathers info on a user, Usage: userinfo <user>")]
         public async Task UserInfo([Remainder] IUser user)
         {
             if (!(user is SocketGuildUser suser)) return;

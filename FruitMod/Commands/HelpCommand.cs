@@ -37,9 +37,17 @@ namespace FruitMod.Commands
         [Summary("Displays all of the commands the bot may provide!")]
         public async Task HelpCommand()
         {
+
             var prefixes = string.Join(", ", _db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes);
             var pages = new List<string>();
             var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner"));
+
+            Color color;
+            if (!Context.GuildUser.Roles.Contains(Context.GuildUser.Roles.LastOrDefault(x => x.Color != Color.Default)))
+                color = Color.DarkPurple;
+            else
+                color = Context.GuildUser.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
+
             foreach (var module in modules)
             {
                 string description = null;
@@ -47,7 +55,7 @@ namespace FruitMod.Commands
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context, _provider);
                     if (result.IsSuccess)
-                        description += $"**{cmd.Aliases.First()}** : => __{cmd.Summary ?? "no summary provided"}__\n";
+                        description += $"**__{cmd.Aliases.First()}__** : => {cmd.Summary ?? "no summary provided"}\n";
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))
@@ -61,7 +69,7 @@ namespace FruitMod.Commands
 
             var msg = new PaginatedMessage
             {
-                Color = Color.Green,
+                Color = color,
                 Options = new PaginatedAppearanceOptions
                 { DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60) },
                 Pages = pages,
@@ -73,7 +81,7 @@ namespace FruitMod.Commands
         }
 
         [Command("help", RunMode = RunMode.Async)]
-        [Summary("Gives the summary of a command")]
+        [Summary("Gives the summary of a command. Usage help <command>")]
         public async Task HelpCommand([Remainder] string command)
         {
             var cmd = CommandService.Commands.FirstOrDefault(x => x.Name == command);

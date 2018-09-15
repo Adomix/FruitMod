@@ -7,7 +7,7 @@ using FruitMod.Preconditions;
 namespace FruitMod.Commands.FeedbackCommands
 {
     [RequireContext(ContextType.DM)]
-    public class OwnerReplyCommand : ModuleBase<SocketCommandContext>
+    public class OwnerReplyCommand : ModuleBase<FruitModContext>
     {
         private readonly DiscordSocketClient _client;
 

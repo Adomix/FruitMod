@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
+using FruitMod.Commands;
 using FruitMod.Interactive;
 using FruitMod.Interactive.Criteria;
 using FruitMod.Interactive.Paginator;
 
 namespace Discord.Addons.Interactive
 {
-    public class InteractiveBase : InteractiveBase<SocketCommandContext>
+    public class InteractiveBase : InteractiveBase<FruitModContext>
     {
     }
 
     public class InteractiveBase<T> : ModuleBase<T>
-        where T : SocketCommandContext
+        where T : FruitModContext
     {
         public InteractiveService Interactive { get; set; }
 

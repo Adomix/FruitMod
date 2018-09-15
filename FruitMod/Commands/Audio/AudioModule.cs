@@ -5,7 +5,7 @@ using Discord.WebSocket;
 namespace FruitMod.Commands.AudioCommands
 {
     [RequireContext(ContextType.Guild)]
-    public class AudioModule : ModuleBase<SocketCommandContext>
+    public class AudioModule : ModuleBase<FruitModContext>
     {
         private readonly AudioService _service;
 
@@ -18,8 +18,8 @@ namespace FruitMod.Commands.AudioCommands
         [Summary("plays a song")]
         public async Task SongPlay([Remainder] string song)
         {
-            await _service.JoinAsync(Context.User as SocketGuildUser, ((SocketGuildUser) Context.User).Guild.Id, song,
-                Context.Channel as SocketTextChannel);
+            await _service.JoinAsync(Context.GuildUser, Context.Guild.Id, song,
+                Context.Channel);
         }
 
         [Command("pause", RunMode = RunMode.Async)]

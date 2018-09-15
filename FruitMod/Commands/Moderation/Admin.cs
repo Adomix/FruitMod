@@ -11,7 +11,7 @@ namespace FruitMod.Commands
     [RequireGuildOwner(Group = "Admin")]
     [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Admin")]
     [RequireOwner(Group = "Admin")]
-    public class Admin : ModuleBase<SocketCommandContext>
+    public class Admin : ModuleBase<FruitModContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly DbService _db;
@@ -22,27 +22,36 @@ namespace FruitMod.Commands
             _client = client;
         }
 
-        [Command("role mod add", RunMode = RunMode.Async)]
+        [Command("mod add", RunMode = RunMode.Async)]
         [Summary("Adds a role to the moderator list")]
-        public async Task AutoRoleAdd([Remainder] IRole role)
+        public async Task ModAdd([Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            dbo.Settings.ModRoles.Add(role);
+            dbo.Settings.ModRoles.Add(role.Id);
+            _db.StoreObject(dbo, Context.Guild.Id);
+
+            if (!(dbo.Settings.ModRoles.Contains(role.Id)))
+            {
+                await ReplyAsync("Role failed to add!");
+                return;
+            }
+
             await ReplyAsync($"New moderator role added! Role: {role.Name}!");
         }
 
-        [Command("role mod del", RunMode = RunMode.Async)]
+        [Command("mod del", RunMode = RunMode.Async)]
         [Summary("Deletes a role to the moderator list")]
-        public async Task AutoRoleDel([Remainder] IRole role)
+        public async Task ModDel([Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if ((!dbo.Settings.ModRoles.Contains(role)))
+            _db.StoreObject(dbo, Context.Guild.Id);
+            if ((!dbo.Settings.ModRoles.Contains(role.Id)))
             {
                 await ReplyAsync("This is not a moderator role!");
                 return;
             }
 
-            dbo.Settings.ModRoles.Remove(role);
+            dbo.Settings.ModRoles.Remove(role.Id);
             await ReplyAsync($"Moderator role removed! Role: {role.Name}!");
         }
 

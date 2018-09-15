@@ -5,6 +5,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
+using FruitMod.Commands;
 using FruitMod.Interactive.Callbacks;
 using FruitMod.Interactive.Criteria;
 using FruitMod.Interactive.Paginator;
@@ -83,7 +84,7 @@ namespace FruitMod.Interactive
             return message;
         }
 
-        public async Task<IUserMessage> SendPaginatedMessageAsync(SocketCommandContext context, PaginatedMessage pager,
+        public async Task<IUserMessage> SendPaginatedMessageAsync(FruitModContext context, PaginatedMessage pager,
             ICriterion<SocketReaction> criterion = null)
         {
             var callback = new PaginatedMessageCallback(this, context, pager, criterion);
