@@ -45,7 +45,7 @@ namespace FruitMod.Commands
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context);
                     if (result.IsSuccess)
-                        description += $"**{cmd.Aliases.First()}** : => __{cmd.Summary}__\n";
+                        description += $"**{cmd.Aliases.First()}** : => __{cmd.Summary ?? "no summary provided"}__\n";
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))
@@ -61,9 +61,9 @@ namespace FruitMod.Commands
             {
                 Color = Color.Green,
                 Options = new PaginatedAppearanceOptions
-                    {DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60)},
+                { DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60) },
                 Pages = pages,
-                Author = new EmbedAuthorBuilder {Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl()},
+                Author = new EmbedAuthorBuilder { Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl() },
                 Title = $"Commands you may use || Current Prefix(es): {prefixes}"
             };
             await PagedReplyAsync(msg);

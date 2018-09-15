@@ -159,7 +159,7 @@ namespace FruitMod.Commands.FunCommands
                 $"Player 1 {p1.Nickname ?? p1.Username} has challenged you {p2.Mention} to a duel for {bet} Mangos! Do you accept? y/n (You have 10 seconds)");
             var reply = await Interactive.NextMessageAsync(Context, criteria, TimeSpan.FromSeconds(10));
             if (reply.Content.Equals("n", StringComparison.OrdinalIgnoreCase) ||
-                reply.Content.Equals("n", StringComparison.OrdinalIgnoreCase))
+                reply.Content.Equals("no", StringComparison.OrdinalIgnoreCase))
             {
                 await msg.ModifyAsync(x => x.Content = "Player 2 has declined!");
             }

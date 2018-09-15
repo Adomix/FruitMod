@@ -18,16 +18,12 @@ namespace FruitMod.Services
         private readonly CommandHandlingService _commands;
         private readonly DbService _db;
         private readonly LoggingService _log;
-        private readonly RatelimitService _rls;
 
-        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
-            RatelimitService rls,
-            LoggingService log)
+        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,LoggingService log)
         {
             _client = client;
             _db = db;
             _commands = commands;
-            _rls = rls;
             _log = log;
         }
 
@@ -36,33 +32,10 @@ namespace FruitMod.Services
 
         public void GuildServices()
         {
-            _client.MessageReceived += RlMsg;
             _client.MessageDeleted += DeletedMessageLogging;
             _client.UserLeft += UserLeftLogging;
             _client.UserJoined += AutoRole;
             _client.UserJoined += CheckMuted;
-        }
-
-        private Task RlMsg(SocketMessage msg)
-        {
-            Task.Run(async () =>
-            {
-                if (!(msg.Channel is SocketTextChannel channel)) return;
-                if (_rls.rlb[channel.Id] == false) return;
-                if (!_rls.msgdict.ContainsKey((channel.Id, msg.Author.Id)))
-                {
-                    _rls.msgdict.Add((channel.Id, msg.Author.Id), DateTime.UtcNow);
-                }
-                else
-                {
-                    if (msg.CreatedAt.UtcDateTime > _rls.msgdict[(channel.Id, msg.Author.Id)].AddSeconds(_rls.time))
-                    {
-                        _rls.msgdict[(channel.Id, msg.Author.Id)] = DateTime.Now;
-                        await msg.DeleteAsync();
-                    }
-                }
-            });
-            return Task.CompletedTask;
         }
 
         // _client.MessageDeleted += DeletedMessageLogging;
@@ -95,7 +68,7 @@ namespace FruitMod.Services
                 }
 
                 if (!delmsgs.Keys.Contains((umsg.Channel as SocketTextChannel).Guild.Id))
-                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> {umsg});
+                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> { umsg });
                 else
                     delmsgs[(msg.Channel as SocketTextChannel).Guild.Id].Add(umsg);
 

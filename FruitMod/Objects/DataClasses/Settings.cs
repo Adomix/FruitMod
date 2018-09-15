@@ -13,6 +13,7 @@ namespace FruitMod.Objects.DataClasses
         public List<ulong> MutedUsers { get; set; } = new List<ulong>();
         public ulong? InfoChannel { get; set; } = null;
         public ulong? MuteRole { get; set; } = null;
+        public List<IRole> ModRoles { get; set; } = new List<IRole>();
         public List<IRole> AutoRoles { get; set; } = new List<IRole>();
     }
 }

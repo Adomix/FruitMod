@@ -12,19 +12,19 @@ using FruitMod.Preconditions;
 
 namespace FruitMod.Commands
 {
-    public class Admin : ModuleBase<SocketCommandContext>
+    [RequireMods(Group = "Moderation")]
+    [RequireOwner(Group = "Moderatinon")]
+    public class Moderation : ModuleBase<SocketCommandContext>
     {
         private readonly DiscordSocketClient _client;
         private readonly DbService _db;
 
-        public Admin(DbService db, DiscordSocketClient client)
+        public Moderation(DbService db, DiscordSocketClient client)
         {
             _db = db;
             _client = client;
         }
 
-
-        [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
         [Command("kick")]
         [Summary("Kicks targeted user, usage: kick <user> <reason(optional>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
@@ -34,7 +34,6 @@ namespace FruitMod.Commands
             await Context.Guild.RemoveBanAsync(user);
         }
 
-        [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
         [Command("ban")]
         [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason>(optional)")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
@@ -43,8 +42,6 @@ namespace FruitMod.Commands
             await Context.Guild.AddBanAsync(user.Id, time, $"{reason}");
         }
 
-        [RequireUserPermission(GuildPermission.BanMembers, Group = "admin")]
-        [RequireOwner(Group = "admin")]
         [Command("bans")]
         [Summary("Shows the users banned")]
         public async Task Bans()
@@ -53,11 +50,9 @@ namespace FruitMod.Commands
             await ReplyAsync(string.Join("\n", bans));
         }
 
-        [RequireAnyUserPerm(GuildPermission.MuteMembers, GuildPermission.ManageRoles,
-            GuildPermission.ManageMessages, Group = "admin")]
         [Command("mute", RunMode = RunMode.Async)]
         [Summary("Text mutes or unmutes a user!")]
-        public async Task Mute([Remainder] IGuildUser user)
+        public async Task Mute([Remainder] SocketGuildUser user)
         {
             if (user is null)
             {
@@ -72,7 +67,7 @@ namespace FruitMod.Commands
             }
 
             var roleId = dbo.Settings.MuteRole.Value;
-            if user.Roles.Any(x => x.Id == roleId))
+            if (user.Roles.Any(x => x.Id == roleId))
             {
                 await user.RemoveRoleAsync(Context.Guild.GetRole(roleId));
                 dbo.UserSettings.MutedUsers.Remove(user.Id);
@@ -82,14 +77,12 @@ namespace FruitMod.Commands
             else
             {
                 dbo.UserSettings.MutedUsers.Add(user.Id);
-                await ((SocketGuildUser) user).AddRoleAsync(Context.Guild.GetRole(roleId));
+                await ((SocketGuildUser)user).AddRoleAsync(Context.Guild.GetRole(roleId));
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user.Mention} has been muted!");
             }
         }
 
-        [RequireAnyUserPerm(GuildPermission.MuteMembers, GuildPermission.ManageRoles,
-            GuildPermission.ManageMessages, Group = "admin")]
         [Command("vmute")]
         [Summary("Mutes or unmutes the targeted user, usage: !admin mute <user> <reason(optional>")]
         public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
@@ -99,10 +92,9 @@ namespace FruitMod.Commands
             await ReplyAsync($"User {(user.IsMuted ? "muted" : "unmuted")}! Reason: {reason}");
         }
 
-        [RequireAnyUserPerm(GuildPermission.MuteMembers, GuildPermission.ManageRoles,GuildPermission.ManageMessages, Group = "admin")]
         [Command("vblock")]
         [Summary("Mutes & deafens or mutes & undeafens the targeted user, usage: !admin block <user> <reason(optional>")]
-        public async Task VBlock(IGuildUser user,[Remainder] string reason = "x")
+        public async Task VBlock(IGuildUser user, [Remainder] string reason = "x")
         {
             await user.ModifyAsync((x) =>
             {
@@ -111,9 +103,6 @@ namespace FruitMod.Commands
             });
         }
 
-        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
-            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
-            GuildPermission.BanMembers, Group = "admin")]
         [Command("block", RunMode = RunMode.Async)]
         [Summary("Blocks or unblocks a user from using the bot!")]
         public async Task Block([Remainder] IUser user)
@@ -145,7 +134,6 @@ namespace FruitMod.Commands
             }
         }
 
-        [RequireAnyUserPerm(GuildPermission.ManageChannels, GuildPermission.ManageMessages, Group = "admin")]
         [Command("clear", RunMode = RunMode.Async)]
         [Summary("Clears X amount of messages, usage: !admin clear <# of messages>")]
         public async Task Clear(int msgs = 5)
@@ -163,7 +151,6 @@ namespace FruitMod.Commands
             await msg.DeleteAsync();
         }
 
-        [RequireAnyUserPerm(GuildPermission.ManageChannels, GuildPermission.ManageMessages, Group = "admin")]
         [Command("purge", RunMode = RunMode.Async)]
         [Summary("Purges a user, usage: !admin purge <user> <amount(default 500)>")]
         public async Task Purge(IUser user, int amount = 500)
@@ -178,7 +165,6 @@ namespace FruitMod.Commands
             await ReplyAsync($"User @{user} has been purged!");
         }
 
-        [RequireAnyUserPerm(GuildPermission.ManageChannels, GuildPermission.ManageMessages, Group = "admin")]
         [Command(".fm", RunMode = RunMode.Async)]
         [Summary("Removes fruitmod posts in this channel")]
         public async Task FmRemove()
@@ -194,38 +180,31 @@ namespace FruitMod.Commands
             (Context.Channel as ITextChannel)?.DeleteMessagesAsync(delmsgs);
         }
 
-        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
-            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
-            GuildPermission.BanMembers, Group = "admin")]
-        [RequireOwner(Group = "admin")]
-        [Command("perms")]
-        [Summary("Lists the bot's perms")]
-        public async Task Perms()
+        [Command("mods")]
+        [Summary("returns all the moderator roles")]
+        public async Task Mods()
         {
-            await ReplyAsync("My permissions!:");
-            await ReplyAsync($"{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            await ReplyAsync(string.Join("\n", dbo.Settings.ModRoles.Select(x => x.Name)));
         }
 
-        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
-            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
-            GuildPermission.BanMembers, Group = "admin")]
-        [RequireOwner(Group = "admin")]
-        [Command("agive")]
+        [Command("mangos give")]
         [Summary("gives x of mangos. Usage: agive 10 user")]
         public async Task AGive(int amount, [Remainder] IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
+            var userGive = dbo.UserCurrency[user.Id];
 
             if (user is null)
             {
                 await ReplyAsync("You must specify a user!");
                 return;
             }
-            
+
             if (amount <= 0)
             {
-                await ReplyAsync("The amount must be greater than zero!")
+                await ReplyAsync("The amount must be greater than zero!");
                 return;
             }
 
@@ -234,8 +213,6 @@ namespace FruitMod.Commands
                 await ReplyAsync("No overflowing! Will set the user to the max!");
                 amount = int.MaxValue - userGive;
             }
-
-            var userGive = dbo.UserCurrency[user.Id];
             if (userGive + amount == int.MaxValue)
                 await ReplyAsync($"User is already at the max amount of Mangos! {int.MaxValue}");
 
@@ -245,11 +222,7 @@ namespace FruitMod.Commands
             await ReplyAsync($"You have successfully given {user} {amount} Mangos!");
         }
 
-        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
-            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
-            GuildPermission.BanMembers, Group = "admin")]
-        [RequireOwner(Group = "admin")]
-        [Command("agive", RunMode = RunMode.Async)]
+        [Command("mangos give", RunMode = RunMode.Async)]
         [Summary("gives x of mangos. Usage: agive 10 @everyone")]
         public async Task AGive(int amount, [Remainder] IRole role)
         {
@@ -259,10 +232,10 @@ namespace FruitMod.Commands
                 await ReplyAsync("You must specify a role!");
                 return;
             }
-            
+
             if (amount <= 0)
             {
-                await ReplyAsync("The amount must be greater than zero!")
+                await ReplyAsync("The amount must be greater than zero!");
                 return;
             }
 
@@ -281,11 +254,7 @@ namespace FruitMod.Commands
             await ReplyAsync($"You have successfully given `{role.Name}` {amount} Mangos!");
         }
 
-        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
-            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
-            GuildPermission.BanMembers, Group = "admin")]
-        [RequireOwner(Group = "admin")]
-        [Command("mangor", RunMode = RunMode.Async)]
+        [Command("mangos del", RunMode = RunMode.Async)]
         [Summary("Resets everyones mangos")]
         public async Task MangoR()
         {
@@ -298,11 +267,7 @@ namespace FruitMod.Commands
             await ReplyAsync("All the Mangos have been eaten!");
         }
 
-        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
-            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
-            GuildPermission.BanMembers, Group = "admin")]
-        [RequireOwner(Group = "admin")]
-        [Command("mangor", RunMode = RunMode.Async)]
+        [Command("mangos del", RunMode = RunMode.Async)]
         [Summary("Resets everyones mangos. Usage: mangor user")]
         public async Task MangoR([Remainder] IUser user)
         {
@@ -314,11 +279,7 @@ namespace FruitMod.Commands
             await ReplyAsync($"User's {user} Mangos have been eaten!");
         }
 
-        [RequireAnyUserPerm(GuildPermission.Administrator, GuildPermission.ManageChannels,
-            GuildPermission.ManageMessages, GuildPermission.ManageGuild, GuildPermission.KickMembers,
-            GuildPermission.BanMembers, Group = "admin")]
-        [RequireOwner(Group = "admin")]
-        [Command("mangorb", RunMode = RunMode.Async)]
+        [Command("mangos delb", RunMode = RunMode.Async)]
         [Summary("Removes all bots added during mango admin operations")]
         public async Task Mangorb()
         {

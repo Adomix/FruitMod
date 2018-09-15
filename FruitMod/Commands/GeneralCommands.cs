@@ -9,6 +9,7 @@ using Discord.WebSocket;
 using FruitMod.Database;
 using FruitMod.Extensions;
 using FruitMod.Objects;
+using FruitMod.Services;
 using Humanizer;
 
 namespace FruitMod.Commands
@@ -17,12 +18,14 @@ namespace FruitMod.Commands
     {
         private static readonly Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
         private readonly DiscordSocketClient _client;
+        private readonly GuildService _guildService;
         private readonly CommandService _cmd;
         private readonly DbService _db;
 
-        public General(DiscordSocketClient client, CommandService cmd, DbService db)
+        public General(DiscordSocketClient client, GuildService gs, CommandService cmd, DbService db)
         {
             _client = client;
+            _guildService = gs;
             _cmd = cmd;
             _db = db;
         }
@@ -149,18 +152,22 @@ namespace FruitMod.Commands
                 .WithTitle($"User: {suser.Username}")
                 .WithThumbnailUrl(suser.GetAvatarUrl())
                 .WithCurrentTimestamp()
+
                 .AddField("Nickname:", suser.Nickname ?? "No nickname", true)
                 .AddField("ID:", suser.Id, true)
+
                 .AddField("Discriminator:", suser.Discriminator, true)
                 .AddField("Bot:", suser.IsBot, true)
+
                 .AddField("Created:", suser.CreatedAt.Date, true)
                 .AddField("Joined:", suser.JoinedAt.Value.Date, true)
+
                 .AddField("Highest Role:", suser.Roles.Last(), true)
-                .AddField("User Hierarchy:",
-                    $"{(suser.Hierarchy == int.MaxValue ? "Guild Owner" : $"{suser.Hierarchy}")}", true)
+                .AddField("User Hierarchy:", $"{(suser.Hierarchy == int.MaxValue ? "Guild Owner" : $"{suser.Hierarchy}")}", true)
+
                 .AddField("All Roles:", roles)
                 .AddField("Permissions:", perms)
-                .AddField("Playing:", suser.Activity?.Name ?? "Not currently playing anything", true)
+                .AddField("Playing:", suser.Activity?.Name ?? "Not currently playing anything")
                 .Build();
             await Context.Channel.SendMessageAsync(string.Empty, false, infoembed);
         }
@@ -220,6 +227,77 @@ namespace FruitMod.Commands
                 .WithCurrentTimestamp()
                 .Build();
             await Context.Channel.SendMessageAsync(string.Empty, false, blockedembed);
+        }
+
+        [Command("perms")]
+        [Summary("Lists the bot's perms")]
+        public async Task Perms()
+        {
+            await ReplyAsync("My permissions!:");
+            await ReplyAsync($"{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
+        }
+
+        [Command("snipe")]
+        [Summary("snipes the last deleted mention")]
+        public async Task Snipe()
+        {
+            var message = _guildService.delmsgs[Context.Guild.Id].LastOrDefault(x => x.MentionedUsers.Count > 0);
+            if (message != null)
+            {
+                if (!(message.Author is SocketGuildUser author)) return;
+
+                Color color;
+
+                if (!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default)))
+                    color = Color.DarkPurple;
+                else
+                    color = author.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
+
+                var embed = new EmbedBuilder()
+                    .WithCurrentTimestamp()
+                    .WithColor(color)
+                    .WithAuthor(author)
+                    .WithTitle("Sniped!")
+                    .AddField($"Mentions: ({message.MentionedUsers.Count})", string.Join(", ", message.MentionedUsers))
+                    .AddField("Content:", message.Content)
+                    .Build();
+                await ReplyAsync(string.Empty, false, embed);
+            }
+            else
+            {
+                await ReplyAsync("No messages with mentions found!");
+            }
+        }
+
+        [Command("grab")]
+        [Summary("grabs the last deleted message")]
+        public async Task Grab()
+        {
+            Color color;
+            var message = _guildService.delmsgs[Context.Guild.Id].LastOrDefault(x => x.MentionedUsers.Count == 0);
+            if (!(message.Author is SocketGuildUser author)) return;
+
+            if (message != null)
+            {
+
+                if (!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default)))
+                    color = Color.DarkPurple;
+                else
+                    color = author.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
+
+                var embed = new EmbedBuilder()
+                    .WithCurrentTimestamp()
+                    .WithColor(color)
+                    .WithAuthor(author)
+                    .WithTitle("Grabbed the last deleted message!")
+                    .AddField("Content:", message.Content)
+                    .Build();
+                await ReplyAsync(string.Empty, false, embed);
+            }
+            else
+            {
+                await ReplyAsync("No messages found!");
+            }
         }
     }
 }
