@@ -1,4 +1,4 @@
-﻿/*using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -25,4 +25,4 @@ namespace FruitMod.Preconditions
                        : Task.FromResult(PreconditionResult.FromError("This command requires you to have a moderator role."));
         }
     }
-}*/
+}

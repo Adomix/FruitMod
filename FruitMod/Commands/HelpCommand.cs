@@ -22,11 +22,13 @@ namespace FruitMod.Commands
             new InMemoryCredentialStore(new Credentials(ConfigurationManager.AppSettings["githubtoken"])));
 
         private readonly DbService _db;
+        private readonly IServiceProvider _provider;
 
-        public Help(CommandService commandService, DbService db)
+        public Help(CommandService commandService, DbService db, IServiceProvider provider)
         {
             CommandService = commandService;
             _db = db;
+            _provider = provider;
         }
 
         private CommandService CommandService { get; }
@@ -43,7 +45,7 @@ namespace FruitMod.Commands
                 string description = null;
                 foreach (var cmd in module.Commands)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context);
+                    var result = await cmd.CheckPreconditionsAsync(Context, _provider);
                     if (result.IsSuccess)
                         description += $"**{cmd.Aliases.First()}** : => __{cmd.Summary ?? "no summary provided"}__\n";
                 }
