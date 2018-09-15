@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -14,7 +14,7 @@ namespace FruitMod.Preconditions
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command,
             IServiceProvider services)
         {
-            var db = services.GetRequiredService<DbService>();
+            var db = services.GetService<DbService>();
             var dbo = db.GetById<GuildObjects>(context.Guild.Id);
             var ids = dbo.Settings.ModRoles.Select(x => x.Id);
 
@@ -25,4 +25,4 @@ namespace FruitMod.Preconditions
                        : Task.FromResult(PreconditionResult.FromError("This command requires you to have a moderator role."));
         }
     }
-}
+}*/

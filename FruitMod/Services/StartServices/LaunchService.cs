@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FruitMod.Services
 {
@@ -30,9 +31,16 @@ namespace FruitMod.Services
         public async Task StartAsync()
         {
             await Login();
+            _services.GetService<AddSettingsService>().AddSettings();
+            _services.GetService<StatisticsService>().LoadStats();
             await CommandLoader();
+            _services.GetService<CommandHandlingService>().CommandHandler();
+            _services.GetService<EventHandlingService>().InstallCommandsAsync();
             GetNamespaces();
+            _services.GetService<GuildService>().GuildServices();
+            _services.GetService<SharplinkService>().AudioInitialization();
         }
+
 
         private async Task Login()
         {

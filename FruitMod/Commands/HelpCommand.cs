@@ -66,6 +66,7 @@ namespace FruitMod.Commands
                 Author = new EmbedAuthorBuilder { Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl() },
                 Title = $"Commands you may use || Current Prefix(es): {prefixes}"
             };
+
             await PagedReplyAsync(msg);
         }
 

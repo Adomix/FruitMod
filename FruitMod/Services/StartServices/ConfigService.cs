@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
+using FruitMod.Database;
 using FruitMod.Interactive;
 using Microsoft.Extensions.DependencyInjection;
 using SharpLink;
@@ -64,13 +65,6 @@ namespace FruitMod.Services
             foreach (var services in service)
                 _services.AddSingleton(services);
             var builtService = _services.BuildServiceProvider();
-
-            builtService.GetService<AddSettingsService>().AddSettings();
-            builtService.GetService<StatisticsService>().LoadStats();
-            builtService.GetService<CommandHandlingService>().CommandHandler();
-            builtService.GetService<EventHandlingService>().InstallCommandsAsync();
-            builtService.GetService<GuildService>().GuildServices();
-            builtService.GetService<SharplinkService>().AudioInitialization();
 
             await builtService.GetService<LaunchService>().StartAsync();
 

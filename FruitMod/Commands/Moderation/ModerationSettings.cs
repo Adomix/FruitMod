@@ -8,7 +8,7 @@ using FruitMod.Preconditions;
 
 namespace FruitMod.Commands
 {
-    [RequireMods(Group = "Moderator")]
+    //[RequireMods(Group = "Moderator")]
     [RequireGuildOwner(Group = "Moderation")]
     [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Moderation")]
     [RequireOwner(Group = "Moderation")]

@@ -12,7 +12,9 @@ using FruitMod.Preconditions;
 
 namespace FruitMod.Commands
 {
-    [RequireMods(Group = "Moderation")]
+    //[RequireMods(Group = "Moderation")]
+    [RequireGuildOwner(Group = "Moderation")]
+    [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Moderation")]
     [RequireOwner(Group = "Moderatinon")]
     public class Moderation : ModuleBase<SocketCommandContext>
     {
@@ -26,7 +28,7 @@ namespace FruitMod.Commands
         }
 
         [Command("kick")]
-        [Summary("Kicks targeted user, usage: kick <user> <reason(optional>")]
+        [Summary("Kicks targeted user, usage: kick <user> <reason(optional)>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
             await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
@@ -35,7 +37,7 @@ namespace FruitMod.Commands
         }
 
         [Command("ban")]
-        [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason>(optional)")]
+        [Summary("Bans targeted user, usage: ban <user> <length>(optional, default is perm) <reason(optional)>")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
             await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
