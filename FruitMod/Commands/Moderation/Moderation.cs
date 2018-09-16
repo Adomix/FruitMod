@@ -31,7 +31,11 @@ namespace FruitMod.Commands
         [Summary("Kicks targeted user, Usage: kick <user> <reason(optional)>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
-            await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            try
+            {
+                await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            }
+            catch(Exception) { }
             await Context.Guild.AddBanAsync(user, 0, $"{reason}");
             await Context.Guild.RemoveBanAsync(user);
         }
@@ -40,7 +44,11 @@ namespace FruitMod.Commands
         [Summary("Bans targeted user, Usage: ban <user> <length>(optional, default is perm) <reason(optional)>")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
-            await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            try
+            {
+                await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            }
+            catch (Exception) { }
             await Context.Guild.AddBanAsync(user.Id, time, $"{reason}");
         }
 
