@@ -1,4 +1,4 @@
-## FruitMod 2.0 ![alt text](https://discord-is-down.party/XCSIOvKl.png "FruitMod")
+## FruitMod 2.0 ![alt text](https://discord-is-down.party/nZpPmNha.png "FruitMod")
 #### FruitMod, the only discord bot you will ever need!
 #### Now verified in discord bots! https://bots.discord.pw/bots/467236886616866816
 
