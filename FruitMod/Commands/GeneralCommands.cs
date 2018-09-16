@@ -18,9 +18,9 @@ namespace FruitMod.Commands
     {
         private static readonly Dictionary<ulong, DateTime> feedback = new Dictionary<ulong, DateTime>();
         private readonly DiscordSocketClient _client;
-        private readonly GuildService _guildService;
         private readonly CommandService _cmd;
         private readonly DbService _db;
+        private readonly GuildService _guildService;
 
         public General(DiscordSocketClient client, GuildService gs, CommandService cmd, DbService db)
         {
@@ -36,7 +36,8 @@ namespace FruitMod.Commands
         {
             var botInfo = await Context.Client.GetApplicationInfoAsync();
             var time = DateTime.Now - Process.GetCurrentProcess().StartTime;
-            await ReplyAsync($"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
+            await ReplyAsync(
+                $"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
         }
 
         [Command("discord")]
@@ -151,19 +152,15 @@ namespace FruitMod.Commands
                 .WithTitle($"User: {suser.Username}")
                 .WithThumbnailUrl(suser.GetAvatarUrl())
                 .WithCurrentTimestamp()
-
                 .AddField("Nickname:", suser.Nickname ?? "No nickname", true)
                 .AddField("ID:", suser.Id, true)
-
                 .AddField("Discriminator:", suser.Discriminator, true)
                 .AddField("Bot:", suser.IsBot, true)
-
                 .AddField("Created:", suser.CreatedAt.Date, true)
                 .AddField("Joined:", suser.JoinedAt.Value.Date, true)
-
                 .AddField("Highest Role:", suser.Roles.Last(), true)
-                .AddField("User Hierarchy:", $"{(suser.Hierarchy == int.MaxValue ? "Guild Owner" : $"{suser.Hierarchy}")}", true)
-
+                .AddField("User Hierarchy:",
+                    $"{(suser.Hierarchy == int.MaxValue ? "Guild Owner" : $"{suser.Hierarchy}")}", true)
                 .AddField("All Roles:", roles)
                 .AddField("Permissions:", perms)
                 .AddField("Playing:", suser.Activity?.Name ?? "Not currently playing anything")
@@ -233,7 +230,8 @@ namespace FruitMod.Commands
         public async Task Perms()
         {
             await ReplyAsync("My permissions!:");
-            await ReplyAsync($"{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
+            await ReplyAsync(
+                $"{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
         }
 
         [Command("snipe")]
@@ -278,7 +276,6 @@ namespace FruitMod.Commands
 
             if (message != null)
             {
-
                 if (!author.Roles.Contains(author.Roles.LastOrDefault(x => x.Color != Color.Default)))
                     color = Color.DarkPurple;
                 else

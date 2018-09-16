@@ -216,8 +216,10 @@ namespace FruitMod.Commands.BotOwnerCommands
                 Console.WriteLine("Channel does not exist. Case sensitive.");
                 return;
             }
+
             var channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name.Contains(channelname)).Id);
-            await channel.SendMessageAsync("Hello! The bot owner has connected to relay chat! I may now read and speak!");
+            await channel.SendMessageAsync(
+                "Hello! The bot owner has connected to relay chat! I may now read and speak!");
             Context.Client.MessageReceived += RelayHandler;
 
             while (true)
@@ -249,9 +251,11 @@ namespace FruitMod.Commands.BotOwnerCommands
                         Console.WriteLine("Channel does not exist. Case sensitive.");
                         return;
                     }
+
                     channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name == channelname).Id);
                     response = string.Empty;
                 }
+
                 if (response != string.Empty)
                 {
                     var mymsg = await channel.SendMessageAsync(response);

@@ -5,9 +5,9 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
+using FruitMod.Commands;
 using FruitMod.Database;
 using FruitMod.Objects;
-using FruitMod.Commands;
 
 namespace FruitMod.Services
 {

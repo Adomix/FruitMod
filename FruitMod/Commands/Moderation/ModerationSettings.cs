@@ -104,7 +104,7 @@ namespace FruitMod.Commands
             dbo.Settings.AutoRoles.Add(role.Id);
             _db.StoreObject(dbo, Context.Guild.Id);
 
-            if ((!dbo.Settings.AutoRoles.Contains(role.Id)))
+            if (!dbo.Settings.AutoRoles.Contains(role.Id))
             {
                 await ReplyAsync("Role failed to add!");
                 return;

@@ -15,13 +15,14 @@ namespace FruitMod.Services
     [SetService]
     public class GuildService
     {
+        private readonly BotOwnerCommands _boc;
         private readonly DiscordSocketClient _client;
         private readonly CommandHandlingService _commands;
         private readonly DbService _db;
         private readonly LoggingService _log;
-        private readonly BotOwnerCommands _boc;
 
-        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,LoggingService log, BotOwnerCommands boc)
+        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
+            LoggingService log, BotOwnerCommands boc)
         {
             _client = client;
             _db = db;
@@ -71,7 +72,7 @@ namespace FruitMod.Services
                 }
 
                 if (!delmsgs.Keys.Contains((umsg.Channel as SocketTextChannel).Guild.Id))
-                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> { umsg });
+                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> {umsg});
                 else
                     delmsgs[(msg.Channel as SocketTextChannel).Guild.Id].Add(umsg);
 
@@ -144,10 +145,7 @@ namespace FruitMod.Services
             var dbo = _db.GetById<GuildObjects>(user.Guild.Id);
             if (dbo.Settings.AutoRoles.Count <= 0) return;
             var roles = new List<IRole>();
-            foreach (var id in dbo.Settings.AutoRoles)
-            {
-                roles.Add(user.Guild.GetRole(id));
-            }
+            foreach (var id in dbo.Settings.AutoRoles) roles.Add(user.Guild.GetRole(id));
             await user.AddRolesAsync(roles);
         }
 

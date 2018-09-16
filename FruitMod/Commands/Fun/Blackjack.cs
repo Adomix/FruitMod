@@ -19,7 +19,6 @@ namespace FruitMod.Commands.FunCommands
         };
 
         private readonly IReadOnlyCollection<string> _suits = new[] {"❤", "♦", "♣", "♠"};
-        public bool blackjackResult;
 
         private readonly ConcurrentDictionary<KeyValuePair<string, int>, int> dduplicate =
             new ConcurrentDictionary<KeyValuePair<string, int>, int>();
@@ -38,6 +37,7 @@ namespace FruitMod.Commands.FunCommands
             new ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>>();
 
         private readonly List<int> values = new List<int>();
+        public bool blackjackResult;
 
         public Embed MyEmbed(ulong id)
         {

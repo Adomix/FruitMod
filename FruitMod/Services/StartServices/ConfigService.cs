@@ -7,7 +7,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
-using FruitMod.Database;
 using FruitMod.Interactive;
 using Microsoft.Extensions.DependencyInjection;
 using SharpLink;

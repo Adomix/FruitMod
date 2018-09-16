@@ -33,9 +33,13 @@ namespace FruitMod.Commands
         {
             try
             {
-                await user.SendMessageAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+                await user.SendMessageAsync(
+                    $"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             }
-            catch(Exception) { }
+            catch (Exception)
+            {
+            }
+
             await Context.Guild.AddBanAsync(user, 0, $"{reason}");
             await Context.Guild.RemoveBanAsync(user);
         }
@@ -46,9 +50,13 @@ namespace FruitMod.Commands
         {
             try
             {
-                await user.SendMessageAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+                await user.SendMessageAsync(
+                    $"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+            }
+
             await Context.Guild.AddBanAsync(user.Id, time, $"{reason}");
         }
 
@@ -72,14 +80,14 @@ namespace FruitMod.Commands
         [Summary("Disables Slowmode")]
         public async Task SlowmodeOff()
         {
-            if(!(Context.Channel.SlowModeInterval > 0))
+            if (!(Context.Channel.SlowModeInterval > 0))
             {
                 await ReplyAsync("This channel is currently not in slowmode!");
                 return;
             }
 
             await Context.Channel.ModifyAsync(x => x.SlowModeInterval = 0);
-            await ReplyAsync($"Slowmode has been disabled! Users may now chat regularly again!");
+            await ReplyAsync("Slowmode has been disabled! Users may now chat regularly again!");
         }
 
         [Command("mute", RunMode = RunMode.Async)]
@@ -91,6 +99,7 @@ namespace FruitMod.Commands
                 await ReplyAsync("User not found!");
                 return;
             }
+
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (dbo.Settings.MuteRole is null)
             {
@@ -109,7 +118,7 @@ namespace FruitMod.Commands
             else
             {
                 dbo.UserSettings.MutedUsers.Add(user.Id);
-                await ((SocketGuildUser)user).AddRoleAsync(Context.Guild.GetRole(roleId));
+                await user.AddRoleAsync(Context.Guild.GetRole(roleId));
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user.Mention} has been muted!");
             }
@@ -120,17 +129,18 @@ namespace FruitMod.Commands
         public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
         {
             if (user is null) return;
-            await user.ModifyAsync(x => x.Mute = !(bool)x.Mute);
+            await user.ModifyAsync(x => x.Mute = !(bool) x.Mute);
             await ReplyAsync($"User {(user.IsMuted ? "muted" : "unmuted")}! Reason: {reason}");
         }
 
         [Command("vblock")]
-        [Summary("Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
+        [Summary(
+            "Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
         public async Task VBlock(IGuildUser user, [Remainder] string reason = "x")
         {
-            await user.ModifyAsync((x) =>
+            await user.ModifyAsync(x =>
             {
-                x.Mute = !(bool)x.Mute;
+                x.Mute = !(bool) x.Mute;
                 x.Deaf = x.Mute;
             });
         }
@@ -190,9 +200,9 @@ namespace FruitMod.Commands
             var channel = Context.Channel as ITextChannel;
             var messages = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             var msgs = from message in messages
-                       where message.Author.Id == user.Id &&
-                           message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                       select message;
+                where message.Author.Id == user.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             await channel?.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
         }
@@ -224,6 +234,7 @@ namespace FruitMod.Commands
                 await ReplyAsync($"User does not have role {role}!");
                 return;
             }
+
             await guser.RemoveRoleAsync(role);
             await ReplyAsync($"Role {role} has been removed from {guser}!");
         }
@@ -245,9 +256,9 @@ namespace FruitMod.Commands
                 await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
-                          where message.Author.Id == Context.Client.CurrentUser.Id &&
-                              message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                          select message;
+                where message.Author.Id == Context.Client.CurrentUser.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             (Context.Channel as ITextChannel)?.DeleteMessagesAsync(delmsgs);
         }
 
@@ -257,10 +268,7 @@ namespace FruitMod.Commands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var roles = new List<IRole>();
-            foreach(var id in dbo.Settings.ModRoles)
-            {
-                roles.Add(Context.Guild.GetRole(id));
-            }
+            foreach (var id in dbo.Settings.ModRoles) roles.Add(Context.Guild.GetRole(id));
             await ReplyAsync(string.Join("\n", roles.Select(x => x.Name)));
         }
 
@@ -289,6 +297,7 @@ namespace FruitMod.Commands
                 await ReplyAsync("No overflowing! Will set the user to the max!");
                 amount = int.MaxValue - userGive;
             }
+
             if (userGive + amount == int.MaxValue)
                 await ReplyAsync($"User is already at the max amount of Mangos! {int.MaxValue}");
 

@@ -6,17 +6,6 @@ namespace FruitMod.Commands
 {
     public class FruitModContext : ICommandContext
     {
-        public DiscordSocketClient Client { get; }
-        public SocketGuild Guild { get; }
-        public SocketGuildChannel GuildChannel { get; }
-        public SocketTextChannel Channel { get; }
-        public SocketChannel DmChannel { get; }
-        public SocketUser User { get; }
-        public SocketGuildUser GuildUser { get; }
-        public SocketUserMessage SMessage { get; }
-        public IUserMessage Message { get; }
-
-
         public FruitModContext(DiscordSocketClient client, IUserMessage message)
         {
             Client = client;
@@ -29,6 +18,16 @@ namespace FruitMod.Commands
             SMessage = message as SocketUserMessage;
             Message = message;
         }
+
+        public DiscordSocketClient Client { get; }
+        public SocketGuild Guild { get; }
+        public SocketGuildChannel GuildChannel { get; }
+        public SocketTextChannel Channel { get; }
+        public SocketChannel DmChannel { get; }
+        public SocketUser User { get; }
+        public SocketGuildUser GuildUser { get; }
+        public SocketUserMessage SMessage { get; }
+        public IUserMessage Message { get; }
 
         IDiscordClient ICommandContext.Client => Client;
         IGuild ICommandContext.Guild => Guild;

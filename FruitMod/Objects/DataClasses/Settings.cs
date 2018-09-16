@@ -1,5 +1,4 @@
-﻿using Discord;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace FruitMod.Objects.DataClasses
 {

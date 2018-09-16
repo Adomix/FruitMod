@@ -30,7 +30,7 @@ namespace FruitMod.Commands
             dbo.Settings.ModRoles.Add(role.Id);
             _db.StoreObject(dbo, Context.Guild.Id);
 
-            if (!(dbo.Settings.ModRoles.Contains(role.Id)))
+            if (!dbo.Settings.ModRoles.Contains(role.Id))
             {
                 await ReplyAsync("Role failed to add!");
                 return;
@@ -45,7 +45,7 @@ namespace FruitMod.Commands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             _db.StoreObject(dbo, Context.Guild.Id);
-            if ((!dbo.Settings.ModRoles.Contains(role.Id)))
+            if (!dbo.Settings.ModRoles.Contains(role.Id))
             {
                 await ReplyAsync("This is not a moderator role!");
                 return;
