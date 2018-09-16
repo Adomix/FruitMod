@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Objects;
 using FruitMod.Services;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Scripting;
 namespace FruitMod.Commands.BotOwnerCommands
 {
     [RequireOwner]
+    [SetService]
     public class BotOwnerCommands : ModuleBase<FruitModContext>
     {
         private readonly DiscordSocketClient _client;
@@ -193,6 +195,54 @@ namespace FruitMod.Commands.BotOwnerCommands
                 await message.DeleteAsync();
                 await ReplyAsync($"Sudo => {input}");
             }
+        }
+
+        [Command("relay")]
+        [Summary("relays a chat")]
+        public async Task Relay(ulong guildId)
+        {
+            var guild = _client.GetGuild(guildId);
+            var channels = guild.TextChannels.OrderBy(x => x.Name).Select(y => y.Name);
+            Console.WriteLine($"Please choose a channel:\n{string.Join("\n", channels)}");
+            var response = await Console.In.ReadLineAsync();
+            string channelname;
+
+            if (channels.Contains(response))
+            {
+                channelname = channels.First(x => x.Equals(response));
+            }
+            else
+            {
+                Console.WriteLine("Channel does not exist. Case sensitive.");
+                return;
+            }
+            var channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name == channelname).Id);
+            Context.Client.MessageReceived += RelayHandler;
+
+            while (response != "exit")
+            {
+                Console.WriteLine("Ready to send a message!");
+                response = await Console.In.ReadLineAsync();
+                if (response == "exit")
+                {
+                    await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
+                    Context.Client.MessageReceived -= RelayHandler;
+                    return;
+                }
+                var mymsg = await channel.SendMessageAsync(response);
+            }
+
+            async Task RelayHandler(SocketMessage msg)
+            {
+                if (!(msg is SocketUserMessage smsg)) return;
+                if (smsg.Channel.Id != channel.Id) return;
+                if (smsg.Author.IsBot) return;
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                await Console.Out.WriteAsync("[Received Relay Message]\n");
+                Console.ResetColor();
+                await Console.Out.WriteLineAsync($"{smsg.Author} wrote {smsg.Content}");
+            }
+            return;
         }
     }
 }

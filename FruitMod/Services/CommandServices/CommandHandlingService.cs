@@ -68,6 +68,9 @@ namespace FruitMod.Services
                         case CommandError.ObjectNotFound:
                             await context.Channel.SendMessageAsync("Target not found!");
                             break;
+                        case CommandError.Exception:
+                            await context.Channel.SendMessageAsync($"Exception: {result.ErrorReason}");
+                            break;
                         default:
                             Console.WriteLine($"Default result error!: {result}");
                             break;

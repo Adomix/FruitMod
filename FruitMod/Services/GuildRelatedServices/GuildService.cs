@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using FruitMod.Attributes;
+using FruitMod.Commands.BotOwnerCommands;
 using FruitMod.Database;
 using FruitMod.Extensions;
 using FruitMod.Objects;
@@ -18,13 +19,15 @@ namespace FruitMod.Services
         private readonly CommandHandlingService _commands;
         private readonly DbService _db;
         private readonly LoggingService _log;
+        private readonly BotOwnerCommands _boc;
 
-        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,LoggingService log)
+        public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,LoggingService log, BotOwnerCommands boc)
         {
             _client = client;
             _db = db;
             _commands = commands;
             _log = log;
+            _boc = boc;
         }
 
         public SortedDictionary<ulong, List<SocketUserMessage>> delmsgs { get; set; } =
