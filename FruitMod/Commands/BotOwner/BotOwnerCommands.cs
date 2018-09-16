@@ -207,7 +207,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             var response = await Console.In.ReadLineAsync();
             string channelname;
 
-            if (channels.Contains(response))
+            if (channels.Any(x => x.Contains(response)))
             {
                 channelname = channels.First(x => x.Contains(response));
             }
@@ -223,6 +223,9 @@ namespace FruitMod.Commands.BotOwnerCommands
             while (true)
             {
                 Console.WriteLine("Ready to send a message!");
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Write("[Your Message]: ");
+                Console.ResetColor();
                 response = await Console.In.ReadLineAsync();
 
                 if (response == "exit")
