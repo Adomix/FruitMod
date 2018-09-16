@@ -217,19 +217,42 @@ namespace FruitMod.Commands.BotOwnerCommands
                 return;
             }
             var channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name == channelname).Id);
+            await channel.SendMessageAsync("Hello! The bot owner has connected to relay chat! I may now read and speak!");
             Context.Client.MessageReceived += RelayHandler;
 
-            while (response != "exit")
+            while (true)
             {
                 Console.WriteLine("Ready to send a message!");
                 response = await Console.In.ReadLineAsync();
+
                 if (response == "exit")
                 {
                     await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
                     Context.Client.MessageReceived -= RelayHandler;
                     return;
                 }
-                var mymsg = await channel.SendMessageAsync(response);
+
+                if (response == "channels")
+                {
+                    Console.WriteLine($"Please choose a channel:\n{string.Join("\n", channels)}");
+                    response = await Console.In.ReadLineAsync();
+
+                    if (channels.Contains(response))
+                    {
+                        channelname = channels.First(x => x.Equals(response));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Channel does not exist. Case sensitive.");
+                        return;
+                    }
+                    channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name == channelname).Id);
+                    response = string.Empty;
+                }
+                if (response != string.Empty)
+                {
+                    var mymsg = await channel.SendMessageAsync(response);
+                }
             }
 
             async Task RelayHandler(SocketMessage msg)
@@ -242,7 +265,6 @@ namespace FruitMod.Commands.BotOwnerCommands
                 Console.ResetColor();
                 await Console.Out.WriteLineAsync($"{smsg.Author} wrote {smsg.Content}");
             }
-            return;
         }
     }
 }
