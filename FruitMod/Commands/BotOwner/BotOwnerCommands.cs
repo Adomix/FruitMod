@@ -209,7 +209,7 @@ namespace FruitMod.Commands.BotOwnerCommands
 
             if (channels.Contains(response))
             {
-                channelname = channels.First(x => x.Equals(response));
+                channelname = channels.First(x => x.Contains(response));
             }
             else
             {
