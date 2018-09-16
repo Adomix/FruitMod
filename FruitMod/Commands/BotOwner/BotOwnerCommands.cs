@@ -238,7 +238,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                 if (smsg.Channel.Id != channel.Id) return;
                 if (smsg.Author.IsBot) return;
                 Console.ForegroundColor = ConsoleColor.Magenta;
-                await Console.Out.WriteAsync("[Received Relay Message]\n");
+                await Console.Out.WriteAsync("[Received Relay Message] ");
                 Console.ResetColor();
                 await Console.Out.WriteLineAsync($"{smsg.Author} wrote {smsg.Content}");
             }
