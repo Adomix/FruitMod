@@ -65,7 +65,7 @@ namespace FruitMod.Commands
         [Summary("Disables Slowmode")]
         public async Task SlowmodeOff()
         {
-            if (Context.Channel.SlowModeInterval == 0)
+            if (Context.Channel.SlowModeInterval <= 0)
             {
                 await ReplyAsync("This channel is currently not in slowmode!");
                 return;
@@ -351,7 +351,7 @@ namespace FruitMod.Commands
             foreach (var x in dbo.UserCurrency)
             {
                 var user = Context.Guild.GetUser(x.Key);
-                if (user.IsBot) newDict.TryRemove(x.Key, out _);
+                if (!user.IsBot) newDict.TryAdd(x.Key, x.Value);
             }
 
             dbo.UserCurrency = newDict;
