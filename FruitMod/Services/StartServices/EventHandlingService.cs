@@ -3,7 +3,6 @@ using Discord;
 using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Commands.AudioCommands;
-using FruitMod.Commands.BotOwnerCommands;
 using FruitMod.Database;
 using SharpLink;
 
@@ -19,10 +18,9 @@ namespace FruitMod.Services
         private readonly DbService _db;
         private readonly LoggingService _log;
         private readonly LavalinkManager _manager;
-        private readonly BotOwnerCommands _boc;
 
         public EventHandlingService(DiscordSocketClient client, LavalinkManager manager, DbService db,
-            AudioService audio, CommandHandlingService commands, LoggingService log, BotOwnerCommands boc)
+            AudioService audio, CommandHandlingService commands, LoggingService log)
         {
             _client = client;
             _manager = manager;
@@ -30,7 +28,6 @@ namespace FruitMod.Services
             _audio = audio;
             _commands = commands;
             _log = log;
-            _boc = boc;
         }
 
         public void InstallCommandsAsync()
@@ -38,7 +35,6 @@ namespace FruitMod.Services
             _client.Ready += TestWarning;
             _client.Ready += TestError;
             _client.Connected += SetGame;
-            _boc.Start();
         }
 
         // _client.Connected += SetGame

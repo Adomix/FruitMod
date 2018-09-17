@@ -40,48 +40,6 @@ namespace FruitMod.Commands.BotOwnerCommands
             _init = init;
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        internal static extern long GetAsyncKeyState(long vKey);
-
-        private static bool OnKeyPress(long key) => Convert.ToBoolean(GetAsyncKeyState(key) & 0x8000);
-
-        private async Task KeyManager()
-        {
-            while (true)
-            {
-                if (OnKeyPress(0x12) && OnKeyPress(0x54))
-                {
-                    while (OnKeyPress(0x12))
-                    {
-                        Thread.Sleep(300);
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.WriteLine($"Guilds:\n{string.Join("\n", _client.Guilds.OrderBy(x => x.Name).Select(y => y.Name))}");
-                        Console.ResetColor();
-                        Console.WriteLine("===========================");
-                        Console.WriteLine("Please submit the guild name.");
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write("[Name]: ");
-                        var name = Console.ReadLine();
-                        Console.ResetColor();
-                        try
-                        {
-                            await RelayAltT(name);
-                        }
-                        catch(Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
-                    }
-                }
-                Thread.Sleep(2);
-            }
-        }
-
-        public async void Start()
-        {
-            await KeyManager();
-        }
-
         [Command("ginfo")]
         [Summary("displays the bot's user count")]
         public async Task Users()
@@ -278,81 +236,6 @@ namespace FruitMod.Commands.BotOwnerCommands
                 {
                     await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
                     Context.Client.MessageReceived -= RelayHandler;
-                    return;
-                }
-
-                if (response == "channels")
-                {
-                    Console.WriteLine($"Please choose a channel:\n{string.Join("\n", channels)}");
-                    response = await Console.In.ReadLineAsync();
-
-                    if (channels.Contains(response))
-                    {
-                        channelname = channels.First(x => x.Equals(response));
-                    }
-                    else
-                    {
-                        Console.WriteLine("Channel does not exist. Case sensitive.");
-                        return;
-                    }
-
-                    channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name == channelname).Id);
-                    response = string.Empty;
-                }
-
-                if (response != string.Empty)
-                {
-                    var mymsg = await channel.SendMessageAsync(response);
-                }
-            }
-
-            async Task RelayHandler(SocketMessage msg)
-            {
-                if (!(msg is SocketUserMessage smsg)) return;
-                if (smsg.Channel.Id != channel.Id) return;
-                if (smsg.Author.IsBot) return;
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                await Console.Out.WriteAsync("[Received Relay Message] ");
-                Console.ResetColor();
-                await Console.Out.WriteLineAsync($"{smsg.Author} wrote {smsg.Content}");
-            }
-        }
-
-        public async Task RelayAltT(string gname)
-        {
-            var guild = _client.GetGuild(_client.Guilds.FirstOrDefault(x => x.Name.Contains(gname)).Id);
-            var channels = guild.TextChannels.OrderBy(x => x.Name).Select(y => y.Name);
-            Console.WriteLine($"Please choose a channel:\n{string.Join("\n", channels)}");
-            var response = await Console.In.ReadLineAsync();
-            string channelname;
-
-            if (channels.Any(x => x.Contains(response)))
-            {
-                channelname = channels.First(x => x.Contains(response));
-            }
-            else
-            {
-                Console.WriteLine("Channel does not exist. Case sensitive.");
-                return;
-            }
-
-            var channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name.Contains(channelname)).Id);
-            await channel.SendMessageAsync(
-                "Hello! The bot owner has connected to relay chat! I may now read and speak!");
-            _client.MessageReceived += RelayHandler;
-
-            while (true)
-            {
-                Console.WriteLine("Ready to send a message!");
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("[Your Message]: ");
-                Console.ResetColor();
-                response = await Console.In.ReadLineAsync();
-
-                if (response == "exit")
-                {
-                    await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
-                    _client.MessageReceived -= RelayHandler;
                     return;
                 }
 
