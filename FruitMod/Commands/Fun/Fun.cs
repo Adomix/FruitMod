@@ -41,9 +41,8 @@ namespace FruitMod.Commands.FunCommands
         [Command("flip", RunMode = RunMode.Async)]
         [Alias("coin flip")]
         [Summary("Bet your Mangos and flip a coin! Usage: flip amount heads/tails")]
-        public async Task Flip(int bet, string input)
+        public async Task Flip(int bet, string decider)
         {
-            var decider = input.ToLower();
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
             var mangos = dbo.UserCurrency[Context.User.Id];
@@ -61,13 +60,14 @@ namespace FruitMod.Commands.FunCommands
                 return;
             }
 
-            if (decider == "heads" || decider == "tails") return;
+            if (decider.Equals("heads", StringComparison.OrdinalIgnoreCase) || 
+                decider.Equals("tails", StringComparison.OrdinalIgnoreCase)) return;
 
             var msg = await ReplyAsync("https://media0.giphy.com/media/10bv4HhibS9nZC/giphy.gif");
             await Task.Delay(4000);
 
             var headsWin = odds < 6;
-            var playerWins = (headsWin && decider == "heads") || (!headsWin && decider == "tails");
+            var playerWins = (headsWin && decider.Equals("heads", StringComparison.OrdinalIgnoreCase)) || (!headsWin && decider.Equals("tails", StringComparison.OrdinalIgnoreCase));
 
             mangos += playerWins ? bet * 2 : -bet;
 
@@ -147,10 +147,12 @@ namespace FruitMod.Commands.FunCommands
             var odds = _random.Next(1, 11);
             var msg = await ReplyAsync($"Player 1 {p1.Nickname ?? p1.Username} has challenged you {p2.Mention} to a duel for {bet} Mangos! Do you accept? y/n (You have 10 seconds)");
             var reply = await Interactive.NextMessageAsync(Context, criteria, TimeSpan.FromSeconds(10));
-            var content = reply.Content.ToLower();
-            if (content == "n" || content == "no")
+            var content = reply.Content;
+            if (content.Equals("n", StringComparison.OrdinalIgnoreCase) || 
+                content.Equals("no", StringComparison.OrdinalIgnoreCase))
                 await msg.ModifyAsync(x => x.Content = "Player 2 has declined!");
-            else if (content == "y" || content == "yes")
+            else if (content.Equals("y", StringComparison.OrdinalIgnoreCase) || 
+                content.Equals("yes", StringComparison.OrdinalIgnoreCase))
             {
                 await msg.ModifyAsync(x => x.Content = "Hazah! Player 2 accepted! I am suiting up for war!");
                 await Task.Delay(2000);
