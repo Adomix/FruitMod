@@ -41,11 +41,8 @@ namespace FruitMod.Commands
             var pages = new List<string>();
             var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner"));
 
-            Color color;
-            if (!Context.GuildUser.Roles.Contains(Context.GuildUser.Roles.LastOrDefault(x => x.Color != Color.Default)))
-                color = Color.DarkPurple;
-            else
-                color = Context.GuildUser.Roles.LastOrDefault(x => x.Color != Color.Default).Color;
+            var role = Context.GuildUser.Roles.LastOrDefault(x => x.Color != Color.Default);
+            var color = role?.Color ?? Color.DarkPurple;
 
             foreach (var module in modules)
             {
@@ -70,9 +67,17 @@ namespace FruitMod.Commands
             {
                 Color = color,
                 Options = new PaginatedAppearanceOptions
-                    {DisplayInformationIcon = false, JumpDisplayOptions = 0, Timeout = TimeSpan.FromSeconds(60)},
+                {
+                    DisplayInformationIcon = false,
+                    JumpDisplayOptions = 0,
+                    Timeout = TimeSpan.FromSeconds(60)
+                },
                 Pages = pages,
-                Author = new EmbedAuthorBuilder {Name = Context.User.Username, IconUrl = Context.User.GetAvatarUrl()},
+                Author = new EmbedAuthorBuilder
+                {
+                    Name = Context.User.Username,
+                    IconUrl = Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl()
+                },
                 Title = $"Commands you may use || Current Prefix(es): {prefixes}"
             };
 
@@ -84,9 +89,10 @@ namespace FruitMod.Commands
         public async Task HelpCommand([Remainder] string command)
         {
             var cmd = CommandService.Commands.FirstOrDefault(x => x.Name == command);
-            if (cmd?.Summary == null) await ReplyAsync($"Command {command} has no further explanation!");
-
-            await ReplyAsync($"{command} => {cmd?.Summary}");
+            if (cmd?.Summary is null)
+                await ReplyAsync($"Command {command} has no further explanation!");
+            else
+                await ReplyAsync($"{command} => {cmd.Summary}");
         }
 
         [Command("git")]
@@ -107,9 +113,9 @@ namespace FruitMod.Commands
                 .AddField("Commits:", string.Join("\n", commits.Select(x => x.Commit.Message).Take(3)) ?? "No commits")
                 .Build();
 
-            await ReplyAsync(string.Empty, false, embed);
+            await ReplyAsync(embed: embed);
 
-            await ReplyAsync(string.Empty, false, msg.Embeds.FirstOrDefault() as Embed);
+            await ReplyAsync(embed: msg.Embeds.FirstOrDefault() as Embed);
         }
     }
 }

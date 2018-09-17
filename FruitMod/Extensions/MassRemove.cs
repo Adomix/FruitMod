@@ -8,9 +8,9 @@ namespace FruitMod.Extensions
     {
         public static void RemoveNext<TKey, TValue>(this SortedDictionary<TKey, TValue> dictionary, int x)
         {
-            if (x > int.MaxValue) throw new ArgumentOutOfRangeException();
+            if (x <= 0) throw new ArgumentOutOfRangeException();
 
-            for (var d = 0; d < x && dictionary.Count > 0; x++) dictionary.Remove(dictionary.FirstOrDefault().Key);
+            for (int d = 0; d < x && dictionary.Count > 0; x++) dictionary.Remove(dictionary.First().Key);
         }
     }
 }
