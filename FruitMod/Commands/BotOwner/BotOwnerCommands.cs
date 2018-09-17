@@ -273,5 +273,56 @@ namespace FruitMod.Commands.BotOwnerCommands
                 await Console.Out.WriteLineAsync($"{smsg.Author} wrote {smsg.Content}");
             }
         }
+
+        [Command("dm")]
+        [Summary("starts a dm with somebody")]
+        public async Task Dm(ulong id)
+        {
+            var user = Context.Client.GetUser(id);
+            try
+            {
+                await user.SendMessageAsync("The bot owner has started a chat with you!");
+                var channel = await user.GetOrCreateDMChannelAsync();
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("[DM channel connected!]");
+                Console.ResetColor();
+                Context.Client.MessageReceived += DMHandler;
+
+                while (true)
+                {
+                    Console.WriteLine("Ready to send a message!");
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.Write("[Your Message]: ");
+                    Console.ResetColor();
+                   var response = await Console.In.ReadLineAsync();
+
+                    if (response == "exit")
+                    {
+                        await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
+                        Context.Client.MessageReceived -= DMHandler;
+                        return;
+                    }
+
+                    if (response != string.Empty)
+                    {
+                        var mymsg = await channel.SendMessageAsync(response);
+                    }
+                }
+
+                async Task DMHandler(SocketMessage msg)
+                {
+                    if (msg.Channel.Id != channel.Id) return;
+                    if (msg.Author.IsBot) return;
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    await Console.Out.WriteAsync("[Received Relay Message] ");
+                    Console.ResetColor();
+                    await Console.Out.WriteLineAsync($"{msg.Author} wrote {msg.Content}");
+                }
+
+            }
+            catch(Exception)
+            {
+            }
+        }
     }
 }
