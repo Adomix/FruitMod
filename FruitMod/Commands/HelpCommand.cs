@@ -50,7 +50,7 @@ namespace FruitMod.Commands
             foreach (var module in modules)
             {
                 string description = null;
-                foreach (var cmd in module.Commands)
+                foreach (var cmd in module.Commands.Distinct())
                 {
                     var result = await cmd.CheckPreconditionsAsync(Context, _provider);
                     if (result.IsSuccess)
