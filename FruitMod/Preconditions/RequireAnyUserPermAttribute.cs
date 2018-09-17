@@ -20,8 +20,8 @@ namespace FruitMod.Preconditions
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command,
             IServiceProvider services)
         {
-            IEnumerable<GuildPermission> uperms = ((IGuildUser) context.User).GuildPermissions.ToList();
-            return _perms.Intersect(uperms).Any()
+            IEnumerable<GuildPermission> uperms = (context.User as IGuildUser)?.GuildPermissions.ToList();
+            return (!(uperms is null) || _perms.Intersect(uperms).Any())
                 ? Task.FromResult(PreconditionResult.FromSuccess())
                 : Task.FromResult(PreconditionResult.FromError(""));
         }

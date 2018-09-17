@@ -55,8 +55,7 @@ namespace FruitMod.Services
 
         private void GetNamespaces()
         {
-            var namespaces = Assembly.GetEntryAssembly().GetTypes().Select(x => x.Namespace).Distinct();
-            namespaces = namespaces.Skip(1);
+            var namespaces = Assembly.GetEntryAssembly().GetTypes().Select(x => x.Namespace).Distinct().Skip(1);
             Namespaces = namespaces;
         }
     }

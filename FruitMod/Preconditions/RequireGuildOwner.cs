@@ -9,9 +9,10 @@ namespace FruitMod.Preconditions
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command,
             IServiceProvider services)
         {
-            return context.User.Id != context.Guild.OwnerId
-                ? Task.FromResult(PreconditionResult.FromError($"Command {command.Name} requires the bot owner!"))
-                : Task.FromResult(PreconditionResult.FromSuccess());
+            return context.User.Id == context.Guild.OwnerId
+                ? Task.FromResult(PreconditionResult.FromSuccess())
+                : Task.FromResult(PreconditionResult.FromError($"Command {command.Name} requires the guild owner!"));
+
         }
     }
 }
