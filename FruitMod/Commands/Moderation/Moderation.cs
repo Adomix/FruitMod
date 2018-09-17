@@ -9,6 +9,7 @@ using Discord.WebSocket;
 using FruitMod.Database;
 using FruitMod.Objects;
 using FruitMod.Preconditions;
+using FruitMod.Extensions;
 
 namespace FruitMod.Commands
 {
@@ -31,32 +32,16 @@ namespace FruitMod.Commands
         [Summary("Kicks targeted user, Usage: kick <user> <reason(optional)>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
-            try
-            {
-                await user.SendMessageAsync(
-                    $"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
-            }
-            catch (Exception)
-            {
-            }
-
-            await Context.Guild.AddBanAsync(user, 0, $"{reason}");
-            await Context.Guild.RemoveBanAsync(user);
+            await user.TryDMAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            await Context.Guild.AddBanAsync(user.Id, 0, $"{reason}");
+            await Context.Guild.RemoveBanAsync(user.Id);
         }
 
         [Command("ban")]
-        [Summary("Bans targeted user, Usage: ban <user> <length>(optional, default is perm) <reason(optional)>")]
+        [Summary("Bans targeted user, Usage: ban <user> <pruneDays>(optional, default is 0) <reason>(optional)")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
-            try
-            {
-                await user.SendMessageAsync(
-                    $"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
-            }
-            catch (Exception)
-            {
-            }
-
+            await user.TryDMAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user.Id, time, $"{reason}");
         }
 
@@ -80,7 +65,7 @@ namespace FruitMod.Commands
         [Summary("Disables Slowmode")]
         public async Task SlowmodeOff()
         {
-            if (!(Context.Channel.SlowModeInterval > 0))
+            if (Context.Channel.SlowModeInterval == 0)
             {
                 await ReplyAsync("This channel is currently not in slowmode!");
                 return;
@@ -108,20 +93,19 @@ namespace FruitMod.Commands
             }
 
             var roleId = dbo.Settings.MuteRole.Value;
-            if (user.Roles.Any(x => x.Id == roleId))
+            var isMuted = user.Roles.Any(x => x.Id == roleId);
+            if (isMuted)
             {
                 await user.RemoveRoleAsync(Context.Guild.GetRole(roleId));
                 dbo.UserSettings.MutedUsers.Remove(user.Id);
-                _db.StoreObject(dbo, Context.Guild.Id);
-                await ReplyAsync($"User {user.Mention} has been unmuted!");
             }
             else
             {
                 dbo.UserSettings.MutedUsers.Add(user.Id);
                 await user.AddRoleAsync(Context.Guild.GetRole(roleId));
-                _db.StoreObject(dbo, Context.Guild.Id);
-                await ReplyAsync($"User {user.Mention} has been muted!");
             }
+            _db.StoreObject(dbo, Context.Guild.Id);
+            await ReplyAsync($"User {user.Mention} has been {(isMuted ? "unmuted" : "muted")}!");
         }
 
         [Command("vmute")]
@@ -134,8 +118,7 @@ namespace FruitMod.Commands
         }
 
         [Command("vblock")]
-        [Summary(
-            "Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
+        [Summary("Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
         public async Task VBlock(IGuildUser user, [Remainder] string reason = "x")
         {
             await user.ModifyAsync(x =>
@@ -197,13 +180,12 @@ namespace FruitMod.Commands
         [Summary("Purges a user, Usage: !admin purge <user> <amount(default 500)>")]
         public async Task Purge(IUser user, int amount = 500)
         {
-            var channel = Context.Channel as ITextChannel;
+            if (!(Context.Channel is ITextChannel channel)) return;
             var messages = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             var msgs = from message in messages
-                where message.Author.Id == user.Id &&
-                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                select message;
-            await channel?.DeleteMessagesAsync(msgs);
+                       where message.Author.Id == user.Id && message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                       select message;
+            await channel.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
         }
 
@@ -216,11 +198,11 @@ namespace FruitMod.Commands
             await ReplyAsync($"Role {role} added to {user}!");
         }
 
-        [Command("role add")]
+        [Command("role add", RunMode = RunMode.Async)]
         [Summary("Adds everyone a role. Usage: role give <role>")]
         public async Task RoleGive([Remainder] IRole role)
         {
-            await Task.WhenAll(Context.Guild.Users.Select(x => x.AddRoleAsync(role)));
+            await Task.WhenAll(Context.Guild.Users.Select(async x => await x.AddRoleAsync(role)));
             await ReplyAsync($"Role {role} added to everyone!");
         }
 
@@ -239,11 +221,11 @@ namespace FruitMod.Commands
             await ReplyAsync($"Role {role} has been removed from {guser}!");
         }
 
-        [Command("role del")]
+        [Command("role del", RunMode = RunMode.Async)]
         [Summary("Deletes a role from everyone. Usage: role del<role>")]
         public async Task RoleDel([Remainder] IRole role)
         {
-            await Task.WhenAll(Context.Guild.Users.Select(x => x.RemoveRoleAsync(role)));
+            await Task.WhenAll(Context.Guild.Users.Select(async x => await x.RemoveRoleAsync(role)));
             await ReplyAsync($"Role {role} has been removed from everyone!");
         }
 
@@ -251,15 +233,15 @@ namespace FruitMod.Commands
         [Summary("Removes fruitmod posts in this channel")]
         public async Task FmRemove()
         {
+            if (!(Context.Channel is ITextChannel channel)) return;
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (Context.Channel.Id == dbo.Settings.LogChannel)
                 await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
-                where message.Author.Id == Context.Client.CurrentUser.Id &&
-                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                select message;
-            (Context.Channel as ITextChannel)?.DeleteMessagesAsync(delmsgs);
+                          where message.Author.Id == Context.Client.CurrentUser.Id && message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                          select message;
+            await channel.DeleteMessagesAsync(delmsgs);
         }
 
         [Command("mods")]
@@ -292,14 +274,11 @@ namespace FruitMod.Commands
                 return;
             }
 
-            if (amount >= int.MaxValue)
-            {
-                await ReplyAsync("No overflowing! Will set the user to the max!");
-                amount = int.MaxValue - userGive;
-            }
-
             if (userGive + amount == int.MaxValue)
+            {
                 await ReplyAsync($"User is already at the max amount of Mangos! {int.MaxValue}");
+                return;
+            }
 
             userGive += amount;
             dbo.UserCurrency[user.Id] = userGive;
@@ -328,11 +307,10 @@ namespace FruitMod.Commands
             {
                 if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
 
-                if (amount >= int.MaxValue) amount = int.MaxValue - dbo.UserCurrency[user.Id];
-
-                if (dbo.UserCurrency[user.Id] >= int.MaxValue) dbo.UserCurrency[user.Id] = int.MaxValue;
-
-                dbo.UserCurrency[user.Id] += amount;
+                if (dbo.UserCurrency[user.Id] + amount > int.MaxValue)
+                    dbo.UserCurrency[user.Id] = int.MaxValue;
+                else
+                    dbo.UserCurrency[user.Id] += amount;
             }
 
             _db.StoreObject(dbo, Context.Guild.Id);
@@ -369,14 +347,14 @@ namespace FruitMod.Commands
         public async Task Mangorb()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            var y = new ConcurrentDictionary<ulong, int>();
+            var newDict = new ConcurrentDictionary<ulong, int>();
             foreach (var x in dbo.UserCurrency)
             {
                 var user = Context.Guild.GetUser(x.Key);
-                if (!user.IsBot) y.TryAdd(x.Key, x.Value);
+                if (user.IsBot) newDict.TryRemove(x.Key, out _);
             }
 
-            dbo.UserCurrency = y;
+            dbo.UserCurrency = newDict;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("All bots removed!");
         }
