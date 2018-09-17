@@ -72,7 +72,7 @@ namespace FruitMod.Services
                 }
 
                 if (!delmsgs.Keys.Contains((umsg.Channel as SocketTextChannel).Guild.Id))
-                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> {umsg});
+                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> { umsg });
                 else
                     delmsgs[(msg.Channel as SocketTextChannel).Guild.Id].Add(umsg);
 
