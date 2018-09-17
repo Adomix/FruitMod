@@ -283,9 +283,6 @@ namespace FruitMod.Commands.BotOwnerCommands
             {
                 await user.SendMessageAsync("The bot owner has started a chat with you!");
                 var channel = await user.GetOrCreateDMChannelAsync();
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.WriteLine("[DM channel connected!]");
-                Console.ResetColor();
                 Context.Client.MessageReceived += DMHandler;
 
                 while (true)
@@ -294,7 +291,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                     Console.ForegroundColor = ConsoleColor.Blue;
                     Console.Write("[Your Message]: ");
                     Console.ResetColor();
-                   var response = await Console.In.ReadLineAsync();
+                    var response = await Console.In.ReadLineAsync();
 
                     if (response == "exit")
                     {
@@ -320,7 +317,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                 }
 
             }
-            catch(Exception)
+            catch (Exception)
             {
             }
         }
