@@ -30,8 +30,8 @@ namespace FruitMod.Commands.FunCommands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
-            var mangos = dbo.UserCurrency[Context.User.Id];
-            await ReplyAsync($"You have {mangos} Mangos!");
+            var amount = dbo.UserCurrency[Context.User.Id];
+            await ReplyAsync($"You have {amount} Mangos!");
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -48,10 +48,10 @@ namespace FruitMod.Commands.FunCommands
             }
 
             feedback.Add((Context.Guild.Id, Context.User.Id), DateTime.Now);
-            var mangos = _random.Next(10, 51);
-            dbo.UserCurrency[Context.User.Id] += mangos;
+            var amount = _random.Next(10, 51);
+            dbo.UserCurrency[Context.User.Id] += amount;
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"You have been given {mangos} mangos!");
+            await ReplyAsync($"You have been given {amount} mangos!");
         }
 
         [Command("give", RunMode = RunMode.Async)]
@@ -62,7 +62,7 @@ namespace FruitMod.Commands.FunCommands
             if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
             if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
             var mangos = dbo.UserCurrency[Context.User.Id];
-            if (user == null)
+            if (user is null)
             {
                 await ReplyAsync("You must specify a user!");
                 return;
@@ -98,8 +98,8 @@ namespace FruitMod.Commands.FunCommands
             var number = new List<int>();
             var topfive = dbo.UserCurrency.OrderByDescending(x => x.Value);
             var leaders = (from pair in topfive
-                let user = Context.Guild.GetUser(pair.Key) as IGuildUser
-                select (user.Nickname ?? user.Username, pair.Value)).ToList();
+                           let user = Context.Guild.GetUser(pair.Key) as IGuildUser
+                           select (user.Nickname ?? user.Username, pair.Value)).ToList();
             if (leaders.Count >= 5)
             {
                 leaders.RemoveRange(5, leaders.Count - 5);
@@ -108,12 +108,10 @@ namespace FruitMod.Commands.FunCommands
                     .AddField("Top five people:", $"{string.Join("\n", leaders)}")
                     .WithColor(Color.Teal)
                     .Build();
-                await ReplyAsync(string.Empty, false, embed);
+                await ReplyAsync(embed: embed);
             }
             else
-            {
                 await ReplyAsync("Not enough users are participating!");
-            }
         }
     }
 }

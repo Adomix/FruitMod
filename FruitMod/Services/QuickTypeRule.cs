@@ -54,8 +54,7 @@ namespace QuickType
         {
             if (reader.TokenType == JsonToken.Null) return null;
             var value = serializer.Deserialize<string>(reader);
-            long l;
-            if (long.TryParse(value, out l)) return l;
+            if (long.TryParse(value, out var l)) return l;
             throw new Exception("Cannot unmarshal type long");
         }
 
