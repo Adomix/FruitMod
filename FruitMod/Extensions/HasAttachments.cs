@@ -6,7 +6,7 @@ namespace FruitMod.Extensions
     {
         public static bool HasAttachments(this IMessage msg)
         {
-            return msg.Attachments.Count > 0 ? true : false;
+            return msg.Attachments.Count > 0;
         }
     }
 }
