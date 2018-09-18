@@ -75,10 +75,11 @@ namespace FruitMod.Commands.BotOwnerCommands
                 var embed = new EmbedBuilder();
                 var sopts = ScriptOptions.Default;
                 var oldWriter = Console.Out;
+
                 if (code.Contains("```cs"))
                 {
-                    code = code.Replace("```cs", string.Empty);
-                    code = code.Replace("```", string.Empty);
+                    code = code.Remove(code.IndexOf("```cs"), 5);
+                    code = code.Remove(code.LastIndexOf("```"), 3);
                 }
 
                 IEnumerable<string> systems = new[]
@@ -116,8 +117,8 @@ namespace FruitMod.Commands.BotOwnerCommands
                     if (result != null)
                     {
                         embed.WithTitle($"Eval result: | Elapsed time: {sw.Elapsed.Humanize()}");
-                        embed.AddField("Input: ", $"```{code}```");
-                        embed.AddField("Result: ", $"```{result}```");
+                        embed.AddField("Input: ", $"{Format.Code(code,"cs")}");
+                        embed.AddField("Result: ", $"```cs\n{result}\n```");
                         embed.WithThumbnailUrl("https://pluralsight.imgix.net/paths/path-icons/csharp-e7b8fcd4ce.png");
                         embed.Color = Color.Green;
                         await msg.DeleteAsync();
