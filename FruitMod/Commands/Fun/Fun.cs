@@ -60,8 +60,8 @@ namespace FruitMod.Commands.FunCommands
                 return;
             }
 
-            if (decider.Equals("heads", StringComparison.OrdinalIgnoreCase) ||
-                decider.Equals("tails", StringComparison.OrdinalIgnoreCase)) return;
+            if (!(decider.Equals("heads", StringComparison.OrdinalIgnoreCase) ||
+                decider.Equals("tails", StringComparison.OrdinalIgnoreCase))) return;
 
             var msg = await ReplyAsync("https://media0.giphy.com/media/10bv4HhibS9nZC/giphy.gif");
             await Task.Delay(4000);
