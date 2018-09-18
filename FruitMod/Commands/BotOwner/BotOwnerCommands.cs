@@ -77,8 +77,8 @@ namespace FruitMod.Commands.BotOwnerCommands
                 var oldWriter = Console.Out;
                 if (code.Contains("```cs"))
                 {
-                    code.Replace("```cs", string.Empty);
-                    code.Replace("```", string.Empty);
+                    code = code.Replace("```cs", string.Empty);
+                    code = code.Replace("```", string.Empty);
                 }
 
                 IEnumerable<string> systems = new[]
