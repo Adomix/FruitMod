@@ -98,8 +98,8 @@ namespace FruitMod.Commands.FunCommands
             var number = new List<int>();
             var topfive = dbo.UserCurrency.OrderByDescending(x => x.Value);
             var leaders = (from pair in topfive
-                           let user = Context.Guild.GetUser(pair.Key) as IGuildUser
-                           select (user.Nickname ?? user.Username, pair.Value)).ToList();
+                let user = Context.Guild.GetUser(pair.Key) as IGuildUser
+                select (user.Nickname ?? user.Username, pair.Value)).ToList();
             if (leaders.Count >= 5)
             {
                 leaders.RemoveRange(5, leaders.Count - 5);
@@ -111,7 +111,9 @@ namespace FruitMod.Commands.FunCommands
                 await ReplyAsync(embed: embed);
             }
             else
+            {
                 await ReplyAsync("Not enough users are participating!");
+            }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace FruitMod.Extensions
         {
             if (x <= 0) throw new ArgumentOutOfRangeException();
 
-            for (int d = 0; d < x && dictionary.Count > 0; x++) dictionary.Remove(dictionary.First().Key);
+            for (var d = 0; d < x && dictionary.Count > 0; x++) dictionary.Remove(dictionary.First().Key);
         }
     }
 }

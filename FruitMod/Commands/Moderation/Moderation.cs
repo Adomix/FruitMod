@@ -7,9 +7,9 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Database;
+using FruitMod.Extensions;
 using FruitMod.Objects;
 using FruitMod.Preconditions;
-using FruitMod.Extensions;
 
 namespace FruitMod.Commands
 {
@@ -32,7 +32,8 @@ namespace FruitMod.Commands
         [Summary("Kicks targeted user, Usage: kick <user> <reason(optional)>")]
         public async Task Kick(IUser user, [Remainder] string reason = "x")
         {
-            await user.TryDMAsync($"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            await user.TryDMAsync(
+                $"You have been kicked from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user.Id, 0, $"{reason}");
             await Context.Guild.RemoveBanAsync(user.Id);
         }
@@ -41,7 +42,8 @@ namespace FruitMod.Commands
         [Summary("Bans targeted user, Usage: ban <user> <pruneDays>(optional, default is 0) <reason>(optional)")]
         public async Task Ban(IUser user, int time = 0, [Remainder] string reason = "x")
         {
-            await user.TryDMAsync($"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
+            await user.TryDMAsync(
+                $"You have been banned from {Context.Guild.Name} by {Context.User}! Reason: {reason}");
             await Context.Guild.AddBanAsync(user.Id, time, $"{reason}");
         }
 
@@ -104,6 +106,7 @@ namespace FruitMod.Commands
                 dbo.UserSettings.MutedUsers.Add(user.Id);
                 await user.AddRoleAsync(Context.Guild.GetRole(roleId));
             }
+
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"User {user.Mention} has been {(isMuted ? "unmuted" : "muted")}!");
         }
@@ -118,7 +121,8 @@ namespace FruitMod.Commands
         }
 
         [Command("vblock")]
-        [Summary("Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
+        [Summary(
+            "Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
         public async Task VBlock(IGuildUser user, [Remainder] string reason = "x")
         {
             await user.ModifyAsync(x =>
@@ -183,8 +187,9 @@ namespace FruitMod.Commands
             if (!(Context.Channel is ITextChannel channel)) return;
             var messages = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             var msgs = from message in messages
-                       where message.Author.Id == user.Id && message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                       select message;
+                where message.Author.Id == user.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             await channel.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
         }
@@ -239,8 +244,9 @@ namespace FruitMod.Commands
                 await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
-                          where message.Author.Id == Context.Client.CurrentUser.Id && message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                          select message;
+                where message.Author.Id == Context.Client.CurrentUser.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             await channel.DeleteMessagesAsync(delmsgs);
         }
 

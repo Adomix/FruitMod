@@ -21,7 +21,7 @@ namespace FruitMod.Preconditions
             IServiceProvider services)
         {
             IEnumerable<GuildPermission> uperms = (context.User as IGuildUser)?.GuildPermissions.ToList();
-            return (!(uperms is null) || _perms.Intersect(uperms).Any())
+            return !(uperms is null) || _perms.Intersect(uperms).Any()
                 ? Task.FromResult(PreconditionResult.FromSuccess())
                 : Task.FromResult(PreconditionResult.FromError(""));
         }

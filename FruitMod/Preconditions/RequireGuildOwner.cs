@@ -12,7 +12,6 @@ namespace FruitMod.Preconditions
             return context.User.Id == context.Guild.OwnerId
                 ? Task.FromResult(PreconditionResult.FromSuccess())
                 : Task.FromResult(PreconditionResult.FromError($"Command {command.Name} requires the guild owner!"));
-
         }
     }
 }

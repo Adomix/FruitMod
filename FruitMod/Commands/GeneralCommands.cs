@@ -36,7 +36,8 @@ namespace FruitMod.Commands
         {
             var botInfo = await Context.Client.GetApplicationInfoAsync();
             var time = DateTime.Now - Process.GetCurrentProcess().StartTime;
-            await ReplyAsync($"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
+            await ReplyAsync(
+                $"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
         }
 
         [Command("discord")]
@@ -50,7 +51,7 @@ namespace FruitMod.Commands
         [Summary("lists all the modules")]
         public async Task Modules()
         {
-            var modules = _cmd.Modules.OrderBy(x => x.Name).Select(x => x.Name).Aggregate((x,y) => $"{x}, {y}");
+            var modules = _cmd.Modules.OrderBy(x => x.Name).Select(x => x.Name).Aggregate((x, y) => $"{x}, {y}");
             await ReplyAsync($"Modules: {modules}");
         }
 
@@ -62,7 +63,8 @@ namespace FruitMod.Commands
             sw.Start();
             var msg = await ReplyAsync("Pinging..");
             sw.Stop();
-            await msg.ModifyAsync(x => x.Content = $":clap: Ping: {sw.ElapsedMilliseconds}ms || :handshake: API: {_client.Latency}ms");
+            await msg.ModifyAsync(x =>
+                x.Content = $":clap: Ping: {sw.ElapsedMilliseconds}ms || :handshake: API: {_client.Latency}ms");
         }
 
         [Command("uptime")]
@@ -84,29 +86,39 @@ namespace FruitMod.Commands
             }
 
             if (!_db.GetById<GuildObjects>(Context.Guild.Id).Settings.VoteSys)
+            {
                 await ReplyAsync("An administrator needs to turn this feature on!");
+            }
             else
             {
-                await ReplyAsync( $"RIP! {Context.User.Username} has initiated a votekick against {user.Username} for {reason}! You have 60 seconds to vote! Vote opens in 2 seconds!");
+                await ReplyAsync(
+                    $"RIP! {Context.User.Username} has initiated a votekick against {user.Username} for {reason}! You have 60 seconds to vote! Vote opens in 2 seconds!");
                 var msg = await ReplyAsync("How to vote: Click the check for yes, the X for no!");
                 await msg.AddReactionsAsync(new[] {new Emoji("✅"), new Emoji("❌")});
                 await Task.Delay(TimeSpan.FromMinutes(1));
                 if (!(await Context.Channel.GetMessageAsync(msg.Id) is IUserMessage message)) return;
 
                 await message.DeleteAsync();
-                var check = message.Reactions.GetValueOrDefault(message.Reactions.Keys.Single(x => x.Name == "✅")).ReactionCount;
-                var xemj = message.Reactions.GetValueOrDefault(message.Reactions.Keys.Single(x => x.Name == "❌")).ReactionCount;
+                var check = message.Reactions.GetValueOrDefault(message.Reactions.Keys.Single(x => x.Name == "✅"))
+                    .ReactionCount;
+                var xemj = message.Reactions.GetValueOrDefault(message.Reactions.Keys.Single(x => x.Name == "❌"))
+                    .ReactionCount;
 
                 if (check > xemj)
                 {
                     await ReplyAsync($"{user}, the tribe has spoken.");
-                    await user.SendMessageAsync( $"Kick details: Voted off by {Context.User.Username} for the reason {reason}");
+                    await user.SendMessageAsync(
+                        $"Kick details: Voted off by {Context.User.Username} for the reason {reason}");
                     await Context.Guild.GetUser(user.Id)?.KickAsync();
                 }
                 else if (check < xemj)
+                {
                     await ReplyAsync($"{user} tonight, you are not being voted off the island.");
+                }
                 else if (check == xemj)
+                {
                     await ReplyAsync($"{user}, the tribe is inconclusive, enjoy your stay.");
+                }
             }
         }
 
@@ -117,11 +129,15 @@ namespace FruitMod.Commands
             if (!(user is SocketGuildUser suser)) return;
 
             var guildPerm = suser.GuildPermissions.ToList();
-            var perms = guildPerm.Contains(GuildPermission.Administrator) 
-                ? "All permissions" : guildPerm.Count > 5 
-                ? $"`{string.Join(", ", guildPerm)}`" : string.Join(", ", guildPerm);
+            var perms = guildPerm.Contains(GuildPermission.Administrator)
+                ? "All permissions"
+                : guildPerm.Count > 5
+                    ? $"`{string.Join(", ", guildPerm)}`"
+                    : string.Join(", ", guildPerm);
 
-            var roles = suser.Roles.Count > 5 ? $"`{string.Join(", ", suser.Roles.OrderBy(x => x.Name))}`" : string.Join(", ", suser.Roles.OrderBy(x => x.Name));
+            var roles = suser.Roles.Count > 5
+                ? $"`{string.Join(", ", suser.Roles.OrderBy(x => x.Name))}`"
+                : string.Join(", ", suser.Roles.OrderBy(x => x.Name));
             var role = suser.Roles.LastOrDefault(x => x.Color != Color.Default);
             var color = role?.Color ?? Color.DarkPurple;
 
@@ -137,7 +153,8 @@ namespace FruitMod.Commands
                 .AddField("Created:", suser.CreatedAt.Date, true)
                 .AddField("Joined:", suser.JoinedAt.Value.Date, true)
                 .AddField("Highest Role:", suser.Roles.LastOrDefault(), true)
-                .AddField("User Hierarchy:", $"{(suser.Hierarchy == int.MaxValue ? "Guild Owner" : $"{suser.Hierarchy}")}", true)
+                .AddField("User Hierarchy:",
+                    $"{(suser.Hierarchy == int.MaxValue ? "Guild Owner" : $"{suser.Hierarchy}")}", true)
                 .AddField("All Roles:", roles)
                 .AddField("Permissions:", perms)
                 .AddField("Playing:", suser.Activity?.Name ?? "Not currently playing anything")
@@ -202,7 +219,8 @@ namespace FruitMod.Commands
         [Summary("Lists the bot's perms")]
         public async Task Perms()
         {
-            await ReplyAsync($"My permissions!:\n{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
+            await ReplyAsync(
+                $"My permissions!:\n{string.Join("\n", Context.Guild.GetUser(_client.CurrentUser.Id).GuildPermissions.ToList())}");
         }
 
         [Command("snipe")]

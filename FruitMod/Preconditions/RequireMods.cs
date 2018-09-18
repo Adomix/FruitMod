@@ -6,7 +6,6 @@ using Discord.Commands;
 using FruitMod.Database;
 using FruitMod.Objects;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 
 namespace FruitMod.Preconditions
 {
