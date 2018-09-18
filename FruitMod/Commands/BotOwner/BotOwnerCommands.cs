@@ -210,8 +210,8 @@ namespace FruitMod.Commands.BotOwnerCommands
         {
             var guild = _client.GetGuild(guildId);
             var channels = guild.TextChannels.OrderBy(x => x.Name).Select(y => y.Name);
-            var dm = await _client.GetUser(386969677143736330).GetOrCreateDMChannelAsync();
-            await dm.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
+
+            await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
             var response = await NextMessageAsync();
             string channelname;
 
@@ -221,7 +221,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             }
             else
             {
-                await dm.SendMessageAsync("Channel does not exist. Case sensitive.");
+                await Context.Channel.SendMessageAsync("Channel does not exist. Case sensitive.");
                 return;
             }
 
@@ -232,10 +232,7 @@ namespace FruitMod.Commands.BotOwnerCommands
 
             while (true)
             {
-                Console.WriteLine("Ready to send a message!");
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("[Your Message]: ");
-                Console.ResetColor();
+                await Context.Channel.SendMessageAsync("[Your Message]: ");
                 response = await NextMessageAsync();
 
                 if (response.Content == "exit")
@@ -247,7 +244,7 @@ namespace FruitMod.Commands.BotOwnerCommands
 
                 if (response.Content == "channels")
                 {
-                    Console.WriteLine($"Please choose a channel:\n{string.Join("\n", channels)}");
+                    await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
                     response = await NextMessageAsync();
 
                     if (channels.Contains(response.Content))
@@ -256,7 +253,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                     }
                     else
                     {
-                        Console.WriteLine("Channel does not exist. Case sensitive.");
+                        await Context.Channel.SendMessageAsync("Channel does not exist. Case sensitive.");
                         return;
                     }
 
@@ -276,10 +273,8 @@ namespace FruitMod.Commands.BotOwnerCommands
                 if (!(msg is SocketUserMessage smsg)) return;
                 if (smsg.Channel.Id != channel.Id) return;
                 if (smsg.Author.IsBot) return;
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                await Console.Out.WriteAsync("[Received Relay Message] ");
-                Console.ResetColor();
-                await Console.Out.WriteLineAsync($"{smsg.Author} wrote {smsg.Content}");
+                await Context.Channel.SendMessageAsync("[Received Relay Message] ");
+                await Context.Channel.SendMessageAsync($"{smsg.Author} wrote {smsg.Content}");
             }
         }
 
@@ -290,8 +285,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             SocketGuild guild;
             await ReplyAsync("Please select a guild");
             await ReplyAsync($"Guilds:\n{string.Join("\n", _client.Guilds.OrderBy(x => x.Name))}");
-            var dm = await _client.GetUser(386969677143736330).GetOrCreateDMChannelAsync();
-            var reply = await NextMessageAsync();
+            var reply = await NextMessageAsync(inSourceChannel: false);
             if (_client.Guilds.Any(x => x.Name.Contains(reply.Content, StringComparison.OrdinalIgnoreCase)))
             {
                 guild = _client.GetGuild(_client.Guilds
@@ -304,7 +298,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             }
 
             var channels = guild.TextChannels.OrderBy(x => x.Name).Select(y => y.Name);
-            await dm.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
+            await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
             var response = await NextMessageAsync();
             string channelname;
 
@@ -314,7 +308,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             }
             else
             {
-                await dm.SendMessageAsync("Channel does not exist. Case sensitive.");
+                await Context.Channel.SendMessageAsync("Channel does not exist. Case sensitive.");
                 return;
             }
 
@@ -325,22 +319,20 @@ namespace FruitMod.Commands.BotOwnerCommands
 
             while (true)
             {
-                Console.WriteLine("Ready to send a message!");
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("[Your Message]: ");
-                Console.ResetColor();
+                await Context.Channel.SendMessageAsync("[Your Message]: ");
                 response = await NextMessageAsync();
 
                 if (response.Content == "exit")
                 {
                     await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
+                    await Context.Channel.SendMessageAsync("Successfully disconnected!");
                     Context.Client.MessageReceived -= RelayHandlerT;
                     return;
                 }
 
                 if (response.Content == "channels")
                 {
-                    await dm.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
+                    await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
                     response = await NextMessageAsync();
 
                     if (channels.Contains(response.Content))
@@ -368,10 +360,8 @@ namespace FruitMod.Commands.BotOwnerCommands
                 if (!(msg is SocketUserMessage smsg)) return;
                 if (smsg.Channel.Id != channel.Id) return;
                 if (smsg.Author.IsBot) return;
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                await Console.Out.WriteAsync("[Received Relay Message] ");
-                Console.ResetColor();
-                await Console.Out.WriteLineAsync($"{smsg.Author} wrote {smsg.Content}");
+                await Context.Channel.SendMessageAsync("[Received Relay Message] ");
+                await Context.Channel.SendMessageAsync($"{smsg.Author} wrote {smsg.Content}");
             }
         }
 
