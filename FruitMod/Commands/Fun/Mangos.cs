@@ -58,15 +58,18 @@ namespace FruitMod.Commands.FunCommands
         [Summary("Gives someone x of your Mangos! Usage: give 10 user")]
         public async Task GiveMangos(int amount, IUser user)
         {
+        
+            if(user.Id == Context.User.Id)
+            {
+                await ReplyAsync("You can not give yourself your mangos!");
+                return;
+            }
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
             if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
+            
             var mangos = dbo.UserCurrency[Context.User.Id];
-            if (user is null)
-            {
-                await ReplyAsync("You must specify a user!");
-                return;
-            }
+            var userGive = dbo.UserCurrency[user.Id];
 
             if (amount <= 0)
             {
@@ -79,8 +82,7 @@ namespace FruitMod.Commands.FunCommands
                 await ReplyAsync($"You do not have enough Mangos! You have {mangos} Mangos!");
                 return;
             }
-
-            var userGive = dbo.UserCurrency[user.Id];
+            
             mangos -= amount;
             userGive += amount;
             dbo.UserCurrency[Context.User.Id] = mangos;
