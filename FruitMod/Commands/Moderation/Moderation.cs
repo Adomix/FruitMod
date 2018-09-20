@@ -15,7 +15,6 @@ namespace FruitMod.Commands
 {
     [RequireMods(Group = "Moderation")]
     [RequireGuildOwner(Group = "Moderation")]
-    [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Moderation")]
     [RequireOwner(Group = "Moderation")]
     public class Moderation : ModuleBase<FruitModContext>
     {

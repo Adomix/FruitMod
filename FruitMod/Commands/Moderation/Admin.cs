@@ -9,7 +9,7 @@ using FruitMod.Preconditions;
 namespace FruitMod.Commands
 {
     [RequireGuildOwner(Group = "Admin")]
-    [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Admin")]
+    [RequireUserPermission(GuildPermission.ManageGuild, Group = "Admin")]
     [RequireOwner(Group = "Admin")]
     public class Admin : ModuleBase<FruitModContext>
     {
@@ -28,7 +28,6 @@ namespace FruitMod.Commands
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             dbo.Settings.ModRoles.Add(role.Id);
-            _db.StoreObject(dbo, Context.Guild.Id);
 
             if (!dbo.Settings.ModRoles.Contains(role.Id))
             {
@@ -37,6 +36,7 @@ namespace FruitMod.Commands
             }
 
             await ReplyAsync($"New moderator role added! Role: {role.Name}!");
+            _db.StoreObject(dbo, Context.Guild.Id);
         }
 
         [Command("mod del", RunMode = RunMode.Async)]
@@ -44,15 +44,16 @@ namespace FruitMod.Commands
         public async Task ModDel([Remainder] IRole role)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            _db.StoreObject(dbo, Context.Guild.Id);
             if (!dbo.Settings.ModRoles.Contains(role.Id))
             {
                 await ReplyAsync("This is not a moderator role!");
                 return;
             }
-
-            dbo.Settings.ModRoles.Remove(role.Id);
+            var roles = dbo.Settings.ModRoles;
+            roles.Remove(role.Id);
+            dbo.Settings.ModRoles = roles;
             await ReplyAsync($"Moderator role removed! Role: {role.Name}!");
+            _db.StoreObject(dbo, Context.Guild.Id);
         }
 
         [Command("reset", RunMode = RunMode.Async)]
