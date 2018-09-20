@@ -14,6 +14,7 @@ using FruitMod.Preconditions;
 namespace FruitMod.Commands
 {
     [RequireMods(Group = "Moderation")]
+    [RequireAnyUserPerm(GuildPermission.ManageRoles, GuildPermission.ManageGuild, Group = "Moderation")]
     [RequireGuildOwner(Group = "Moderation")]
     [RequireOwner(Group = "Moderation")]
     public class Moderation : ModuleBase<FruitModContext>
