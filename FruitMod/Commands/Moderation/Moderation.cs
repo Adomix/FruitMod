@@ -212,8 +212,7 @@ namespace FruitMod.Commands
         [Summary("Adds someone a role. Usage role give <user> <role>")]
         public async Task RoleGive(IUser user, [Remainder] IRole role)
         {
-            if (!(user is IGuildUser guser)) return;
-            await guser.AddRoleAsync(role);
+            await Context.GuildUser.AddRoleAsync(role);
             await ReplyAsync($"Role {role} added to {user}!");
         }
 

@@ -64,6 +64,7 @@ namespace FruitMod.Services
                 var msg = await oldmsg.GetOrDownloadAsync();
 
                 if (!(msg is SocketUserMessage umsg)) return Task.CompletedTask;
+                if (msg.Channel.Id == dbo.Settings.LogChannel) return Task.CompletedTask;
 
                 if (delmsgs.Values.Count >= 50)
                 {
