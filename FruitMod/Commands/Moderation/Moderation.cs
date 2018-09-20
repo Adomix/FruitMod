@@ -47,6 +47,20 @@ namespace FruitMod.Commands
             await Context.Guild.AddBanAsync(user.Id, time, $"{reason}");
         }
 
+        [Command("unban")]
+        [Summary("Unbans targeted user, Usage: unban <user>")]
+        public async Task UnBan(IUser user)
+        {
+            var bans = await Context.Guild.GetBansAsync();
+            if (bans.Select(x => x.User.Id).Contains(user.Id))
+            {
+                await Context.Guild.RemoveBanAsync(user);
+                await ReplyAsync("User has been unbanned!");
+            }
+            else
+                await ReplyAsync("User is not banned!");
+        }
+
         [Command("bans")]
         [Summary("Shows the users banned")]
         public async Task Bans()
@@ -116,7 +130,7 @@ namespace FruitMod.Commands
         public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
         {
             if (user is null) return;
-            await user.ModifyAsync(x => x.Mute = !(bool) x.Mute);
+            await user.ModifyAsync(x => x.Mute = !(bool)x.Mute);
             await ReplyAsync($"User {(user.IsMuted ? "muted" : "unmuted")}! Reason: {reason}");
         }
 
@@ -127,7 +141,7 @@ namespace FruitMod.Commands
         {
             await user.ModifyAsync(x =>
             {
-                x.Mute = !(bool) x.Mute;
+                x.Mute = !(bool)x.Mute;
                 x.Deaf = x.Mute;
             });
         }
@@ -187,9 +201,9 @@ namespace FruitMod.Commands
             if (!(Context.Channel is ITextChannel channel)) return;
             var messages = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             var msgs = from message in messages
-                where message.Author.Id == user.Id &&
-                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                select message;
+                       where message.Author.Id == user.Id &&
+                             message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                       select message;
             await channel.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
         }
@@ -244,9 +258,9 @@ namespace FruitMod.Commands
                 await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
-                where message.Author.Id == Context.Client.CurrentUser.Id &&
-                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                select message;
+                          where message.Author.Id == Context.Client.CurrentUser.Id &&
+                                message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                          select message;
             await channel.DeleteMessagesAsync(delmsgs);
         }
 
