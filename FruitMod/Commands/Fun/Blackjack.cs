@@ -18,7 +18,7 @@ namespace FruitMod.Commands.FunCommands
             {"eight", 8}, {"nine", 9}, {"ten", 10}, {"jack", 10}, {"queen", 10}, {"king", 10}
         };
 
-        private readonly IReadOnlyCollection<string> _suits = new[] {"❤", "♦", "♣", "♠"};
+        private readonly IReadOnlyCollection<string> _suits = new[] { "❤", "♦", "♣", "♠" };
 
         private readonly ConcurrentDictionary<KeyValuePair<string, int>, int> dduplicate =
             new ConcurrentDictionary<KeyValuePair<string, int>, int>();
@@ -37,7 +37,6 @@ namespace FruitMod.Commands.FunCommands
             new ConcurrentDictionary<ulong, Queue<(string suit, string card, int value)>>();
 
         private readonly List<int> values = new List<int>();
-        public bool blackjackResult;
 
         public Embed MyEmbed(ulong id)
         {
@@ -227,70 +226,53 @@ namespace FruitMod.Commands.FunCommands
 
         public async Task WinLose(int player, int dealer, int bet)
         {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            var userMangos = dbo.UserCurrency[Context.User.Id];
-            var mangos = bet * _random.Next(1, 4);
-            bool? win = null;
-            if (player == dealer)
+            bool result = false;
+
+            if (player > dealer && player <= 21) result = true;
+            else if (player == dealer && player < 21)
             {
-                await ReplyAsync("Push! You keep your Mangos!");
-                await MangosUpdate(win, userMangos);
+                await ReplyAsync("Draw!");
+                return;
             }
-            else if (player > 21 && dealer <= 21)
+            else if (player > 21 && dealer < 21)
             {
-                await ReplyAsync($"Bust! You busted! You have lost {bet} Mangos!");
-                win = false;
+                result = false;
             }
-            else if (dealer > 21 && player < 21)
+            else if (player < 21 && dealer > 21)
             {
-                await ReplyAsync($"You won! Dealer busted! You won {mangos} mangos!");
-                win = true;
-            }
-            else if (player > 21 && dealer > 21)
-            {
-                await ReplyAsync("Push! You both busted!");
-                await MangosUpdate(win, userMangos);
-            }
-            else if (player <= 21 && player > dealer)
-            {
-                await ReplyAsync($"You won! You have won {mangos} Mangos!");
-                win = true;
-            }
-            else if (player < 21 && player < dealer)
-            {
-                await ReplyAsync($"You lost! You have lost {bet} Mangos!");
-                win = false;
-            }
-            else if (player == 21 && dealer < 21)
-            {
-                await ReplyAsync($"You won! Blackjack!!! You won {mangos * 2} Mangos!");
-                win = true;
+                result = true;
             }
             else if (player == 21 && dealer == 21)
             {
-                await ReplyAsync("Push! You keep your Mangos!");
+                await ReplyAsync("Draw!");
+                return;
             }
 
-            await MangosUpdate(win, userMangos);
+            await MangosUpdate(result, bet);
         }
 
-        public async Task MangosUpdate(bool? win, int mangos)
+        public async Task MangosUpdate(bool win, int bet)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var userMangos = dbo.UserCurrency[Context.User.Id];
+            var mangos = bet * _random.Next(1, 4);
+
+            if (win)
+            {
+                await ReplyAsync("You won! :)");
+            }
+            else
+            {
+                await ReplyAsync("You lost! :(");
+            }
+
             if (win == true && userMangos + mangos >= int.MaxValue)
             {
                 mangos = int.MaxValue - userMangos;
                 await ReplyAsync($"You can't have over {int.MaxValue} Mangos! Giving you the difference.");
             }
-            else if (win == true)
-            {
-                userMangos = userMangos + mangos;
-            }
-            else if (win == false)
-            {
-                userMangos = userMangos - mangos;
-            }
+            else if (win == true) userMangos += mangos;
+            else if (win == false) userMangos -= bet;
 
             dbo.UserCurrency[Context.User.Id] = userMangos;
             _db.StoreObject(dbo, Context.Guild.Id);
