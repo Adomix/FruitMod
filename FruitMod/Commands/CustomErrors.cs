@@ -1,7 +1,5 @@
 namespace FruitMod.Commands
 {
-    public class FruitErrors
-    {
       public enum Reasons
       {
         NoGuild = "You must be in a guild to use this command!",
@@ -10,5 +8,4 @@ namespace FruitMod.Commands
         Banned = "You have been banned from the bot!",
         Zero = "Value must be > 0!"
       }
-    }
 }
