@@ -61,6 +61,52 @@ namespace FruitMod.Commands
                 await ReplyAsync("User is not banned!");
         }
 
+        [Command("warn", RunMode = RunMode.Async)]
+        [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
+        public async Task Warn(IUser user, [Remainder] string reason = "No reason supplied.")
+        {
+            // This one is for my good ol' pal JustNrik ;`)
+
+            if (!(user is IGuildUser guser)) return;
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.Warnings;
+            if (dbo.ContainsKey(Context.User.Id))
+            {
+                dbo[Context.User.Id].Add((dbo[Context.User.Id].Sum(x => x.Item1)+1, reason));
+                await ReplyAsync("User has gained a warning!");
+            }
+            else
+            {
+                List<(int, string)> newList = new List<(int, string)>();
+                if (dbo.TryAdd(Context.User.Id, newList))
+                {
+                    dbo[Context.User.Id].Add((1, reason));
+                    await ReplyAsync("User has gained a warning!");
+                }
+                else
+                {
+                    await ReplyAsync("User was failed to add to the warning list!");
+                }
+            }
+        }
+
+        [Command("warnings", RunMode = RunMode.Async)]
+        [Summary("Shows a users' warnings. Usage: warnings <user>")]
+        public async Task Warnings([Remainder] IUser user)
+        {
+            if (!(user is IGuildUser guser)) return;
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.Warnings;
+
+            if (dbo.ContainsKey(Context.User.Id))
+            {
+                await ReplyAsync($"{guser.Nickname ?? guser.Username} Warnings: {string.Join("\n", dbo[Context.User.Id])}");
+            }
+            else
+            {
+                await ReplyAsync($"{guser.Nickname ?? guser.Username} has no warnings!");
+            }
+
+        }
+
         [Command("bans")]
         [Summary("Shows the users banned")]
         public async Task Bans()
@@ -175,6 +221,36 @@ namespace FruitMod.Commands
                     .Build();
                 await ReplyAsync(string.Empty, false, blockedEmbed);
             }
+        }
+
+        [Command("bblock", RunMode = RunMode.Async)]
+        [Summary("Blocks or unblocks a user from using the bot!")]
+        public async Task BBlock(IUser user)
+        {
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            var guildId = Context.Guild.Id;
+            var existinglist = _db.GetById<GuildObjects>(guildId).UserSettings.BlockedUsers ?? new List<ulong>();
+
+            if (existinglist.Contains(user.Id))
+            {
+                existinglist.Remove(user.Id);
+                dbo.UserSettings.BlockedUsers = existinglist;
+                _db.StoreObject(dbo, Context.Guild.Id);
+                await ReplyAsync($"User {user} has been unblocked!");
+                return;
+            }
+
+            existinglist.Add(user.Id);
+            dbo.UserSettings.BlockedUsers = existinglist;
+            _db.StoreObject(dbo, Context.Guild.Id);
+            var blockedEmbed = new EmbedBuilder()
+                .WithTitle("User bot blocked!")
+                .AddField($"{user.Mention}", "Proecced at time (GMT-5): ", true)
+                .AddField(" has been deauthorized from FruitMod!", DateTime.Now, true)
+                .WithThumbnailUrl(user.GetAvatarUrl())
+                .WithColor(Color.Blue)
+                .Build();
+            await ReplyAsync(string.Empty, false, blockedEmbed);
         }
 
         [Command("clear", RunMode = RunMode.Async)]

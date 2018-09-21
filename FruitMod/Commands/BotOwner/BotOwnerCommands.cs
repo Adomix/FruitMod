@@ -156,25 +156,25 @@ namespace FruitMod.Commands.BotOwnerCommands
         }
 
 
-        [Command("bblock", RunMode = RunMode.Async)]
+        [Command("bban", RunMode = RunMode.Async)]
         [Summary("Blocks or unblocks a user from using the bot!")]
         public async Task BBlock(IUser user)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var guildId = Context.Guild.Id;
-            var existinglist = _db.GetById<GuildObjects>(guildId).UserSettings.BlockedUsers ?? new List<ulong>();
+            var existinglist = _db.GetById<GuildObjects>(guildId).UserSettings.BotBannedUsers ?? new List<ulong>();
 
             if (existinglist.Contains(user.Id))
             {
                 existinglist.Remove(user.Id);
-                dbo.UserSettings.BlockedUsers = existinglist;
+                dbo.UserSettings.BotBannedUsers = existinglist;
                 _db.StoreObject(dbo, Context.Guild.Id);
                 await ReplyAsync($"User {user} has been unblocked!");
                 return;
             }
 
             existinglist.Add(user.Id);
-            dbo.UserSettings.BlockedUsers = existinglist;
+            dbo.UserSettings.BotBannedUsers = existinglist;
             _db.StoreObject(dbo, Context.Guild.Id);
             var blockedEmbed = new EmbedBuilder()
                 .WithTitle("User bot blocked!")

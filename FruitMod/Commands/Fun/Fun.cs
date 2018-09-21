@@ -81,9 +81,9 @@ namespace FruitMod.Commands.FunCommands
             }
 
             if (playerWins)
-                await msg.ModifyAsync(x => x.Content = $"You won! You have won {bet * 2} Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you won! You have won {bet * 2} Mangos!");
             else
-                await msg.ModifyAsync(x => x.Content = "You Lost! You have lost your bet Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you Lost! You have lost your bet Mangos!");
         }
 
         [Command("roulette", RunMode = RunMode.Async)]

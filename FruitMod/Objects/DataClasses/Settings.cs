@@ -9,7 +9,6 @@ namespace FruitMod.Objects.DataClasses
         public bool DeleteSys { get; set; } = false;
         public List<string> Prefixes { get; set; } = new List<string>();
         public ulong? LogChannel { get; set; } = null;
-        public List<ulong> MutedUsers { get; set; } = new List<ulong>();
         public ulong? InfoChannel { get; set; } = null;
         public ulong? MuteRole { get; set; } = null;
         public List<ulong> ModRoles { get; set; } = new List<ulong>();
