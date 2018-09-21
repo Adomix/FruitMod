@@ -276,7 +276,14 @@ namespace FruitMod.Commands.FunCommands
 
             dbo.UserCurrency[Context.User.Id] = userMangos;
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"You now have {userMangos} Mangos!");
+            if(_db.GetById<GuildObjects>(Context.Guild.Id).UserCurrency[Context.User.Id] == userMangos)
+            {
+                await ReplyAsync($"You now have {userMangos} Mangos!");
+            }
+            else
+            {
+                await ReplyAsync($"Database busy! Try again!");
+            }
         }
     }
 }

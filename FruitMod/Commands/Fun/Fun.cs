@@ -72,13 +72,18 @@ namespace FruitMod.Commands.FunCommands
 
             mangos += playerWins ? bet * 2 : -bet;
 
+            dbo.UserCurrency[Context.User.Id] = mangos;
+            _db.StoreObject(dbo, Context.Guild.Id);
+
+            if (!(_db.GetById<GuildObjects>(Context.Guild.Id).UserCurrency[Context.User.Id] == mangos))
+            {
+                await ReplyAsync($"Database busy! Try again!");
+            }
+
             if (playerWins)
                 await msg.ModifyAsync(x => x.Content = $"You won! You have won {bet * 2} Mangos!");
             else
                 await msg.ModifyAsync(x => x.Content = "You Lost! You have lost your bet Mangos!");
-
-            dbo.UserCurrency[Context.User.Id] = mangos;
-            _db.StoreObject(dbo, Context.Guild.Id);
         }
 
         [Command("roulette", RunMode = RunMode.Async)]
