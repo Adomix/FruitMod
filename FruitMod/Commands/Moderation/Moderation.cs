@@ -61,52 +61,6 @@ namespace FruitMod.Commands
                 await ReplyAsync("User is not banned!");
         }
 
-        [Command("warn", RunMode = RunMode.Async)]
-        [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
-        public async Task Warn(IUser user, [Remainder] string reason = "No reason supplied.")
-        {
-            // This one is for my good ol' pal JustNrik ;`)
-
-            if (!(user is IGuildUser guser)) return;
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.Warnings;
-            if (dbo.ContainsKey(Context.User.Id))
-            {
-                dbo[Context.User.Id].Add((dbo[Context.User.Id].Sum(x => x.Item1)+1, reason));
-                await ReplyAsync("User has gained a warning!");
-            }
-            else
-            {
-                List<(int, string)> newList = new List<(int, string)>();
-                if (dbo.TryAdd(Context.User.Id, newList))
-                {
-                    dbo[Context.User.Id].Add((1, reason));
-                    await ReplyAsync("User has gained a warning!");
-                }
-                else
-                {
-                    await ReplyAsync("User was failed to add to the warning list!");
-                }
-            }
-        }
-
-        [Command("warnings", RunMode = RunMode.Async)]
-        [Summary("Shows a users' warnings. Usage: warnings <user>")]
-        public async Task Warnings([Remainder] IUser user)
-        {
-            if (!(user is IGuildUser guser)) return;
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.Warnings;
-
-            if (dbo.ContainsKey(Context.User.Id))
-            {
-                await ReplyAsync($"{guser.Nickname ?? guser.Username} Warnings: {string.Join("\n", dbo[Context.User.Id])}");
-            }
-            else
-            {
-                await ReplyAsync($"{guser.Nickname ?? guser.Username} has no warnings!");
-            }
-
-        }
-
         [Command("bans")]
         [Summary("Shows the users banned")]
         public async Task Bans()
@@ -181,8 +135,7 @@ namespace FruitMod.Commands
         }
 
         [Command("vblock")]
-        [Summary(
-            "Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
+        [Summary("Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
         public async Task VBlock(IGuildUser user, [Remainder] string reason = "x")
         {
             await user.ModifyAsync(x =>

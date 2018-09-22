@@ -41,7 +41,7 @@ namespace FruitMod.Commands.AudioCommands
                 _player = await _manager.JoinAsync((user as IVoiceState).VoiceChannel);
             else if (_player.Playing == false) await _manager.JoinAsync((user as IVoiceState).VoiceChannel);
 
-                var tracks = await _manager.GetTracksAsync($"ytsearch: {title}");
+            var tracks = await _manager.GetTracksAsync($"ytsearch: {title}");
             var track = tracks.Tracks.ElementAt(0);
             if (track == null)
                 await channel.SendMessageAsync("Track could not be found!");

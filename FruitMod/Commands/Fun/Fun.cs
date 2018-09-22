@@ -9,8 +9,10 @@ using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Database;
+using FruitMod.Economy;
 using FruitMod.Interactive.Criteria;
 using FruitMod.Objects;
+using FruitMod.Objects.DataClasses;
 using Newtonsoft.Json.Linq;
 
 namespace FruitMod.Commands.FunCommands
@@ -40,23 +42,36 @@ namespace FruitMod.Commands.FunCommands
 
         [Command("flip", RunMode = RunMode.Async)]
         [Alias("coin flip")]
-        [Summary("Bet your Mangos and flip a coin! Usage: flip amount heads/tails")]
-        public async Task Flip(int bet, string decider)
+        [Summary("Bet your fruits and flip a coin! Usage: flip <amount> <heads/tails> <fruit(option, default is grapes)>")]
+        public async Task Flip(int bet, string decider, Fruits fruit = Fruits.Grapes)
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
-            var mangos = dbo.UserCurrency[Context.User.Id];
+
+            if (!dbo.UserStruct.ContainsKey(Context.User.Id))
+            {
+                var newFruit = new Dictionary<Economy.Fruits, int>
+                {
+                    { Economy.Fruits.Guavas, 0 },
+                    { Economy.Fruits.Grapes, 0 },
+                    { Economy.Fruits.Watermelons, 0 },
+                    { Economy.Fruits.Pineapples, 0 },
+                    { Economy.Fruits.Mangos, 0 }
+                };
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruits = newFruit });
+            }
+
+            var invokersFruit = dbo.UserStruct[Context.User.Id].Fruits[fruit];
             var odds = _random.Next(1, 11);
 
             if (bet <= 0)
             {
-                await ReplyAsync($"Bet must be greater than 0! You have {mangos} Mangos!");
+                await ReplyAsync($"Bet must be greater than 0! You have {invokersFruit} {fruit}!");
                 return;
             }
 
-            if (dbo.UserCurrency[Context.User.Id] < bet)
+            if (invokersFruit < bet)
             {
-                await ReplyAsync($"You do not have enough Mangos to do this! You have {mangos} Mangos!");
+                await ReplyAsync($"You do not have enough Mangos to do this! You have {invokersFruit} {fruit}!");
                 return;
             }
 
@@ -70,47 +85,88 @@ namespace FruitMod.Commands.FunCommands
             var playerWins = headsWin && decider.Equals("heads", StringComparison.OrdinalIgnoreCase) ||
                              !headsWin && decider.Equals("tails", StringComparison.OrdinalIgnoreCase);
 
-            mangos += playerWins ? bet * 2 : -bet;
+            if(invokersFruit + (int)Math.Round(1.2 * bet) >= int.MaxValue)
+            {
+                await ReplyAsync("You are going to go over the max! Giving you the difference!");
+                var dif = int.MaxValue - (int)Math.Round(1.2 * bet);
+                invokersFruit += playerWins ? dif : -bet;
+            }
+            else
+            {
+                invokersFruit += playerWins ? (int)Math.Round(1.2 * bet) : -bet;
+            }
 
-            dbo.UserCurrency[Context.User.Id] = mangos;
+            dbo.UserStruct[Context.User.Id].Fruits.Remove(dbo.UserStruct[Context.User.Id].Fruits.Keys.FirstOrDefault(x => x.Equals(fruit)));
+            dbo.UserStruct[Context.User.Id].Fruits.Add(dbo.UserStruct[Context.User.Id].Fruits.Keys.FirstOrDefault(x => x.Equals(fruit)), invokersFruit);
+
             _db.StoreObject(dbo, Context.Guild.Id);
 
-            if (!(_db.GetById<GuildObjects>(Context.Guild.Id).UserCurrency[Context.User.Id] == mangos))
+            if (!(dbo.UserStruct[Context.User.Id].Fruits[fruit] == invokersFruit))
             {
                 await ReplyAsync($"Database busy! Try again!");
             }
 
             if (playerWins)
-                await msg.ModifyAsync(x => x.Content = $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you won! You have won {bet * 2} Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you won! You have won {bet * 2} {fruit}!");
             else
-                await msg.ModifyAsync(x => x.Content = $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you Lost! You have lost your bet Mangos!");
+                await msg.ModifyAsync(x => x.Content = $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you Lost! You have lost your bet {fruit}!");
         }
 
         [Command("roulette", RunMode = RunMode.Async)]
-        [Summary("BANG *dead* **Costs 15 mangos** (Chance to make someone lose 1-10 mangos)")]
+        [Summary("BANG *dead* **5 mangos** (This will make someones lose 0-15 of a random fruit!)")]
         public async Task React()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
+
+            if (!dbo.UserStruct.ContainsKey(Context.User.Id))
+            {
+                var newFruit = new Dictionary<Economy.Fruits, int>
+                {
+                    { Economy.Fruits.Guavas, 0 },
+                    { Economy.Fruits.Grapes, 0 },
+                    { Economy.Fruits.Watermelons, 0 },
+                    { Economy.Fruits.Pineapples, 0 },
+                    { Economy.Fruits.Mangos, 0 }
+                };
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruits = newFruit });
+            }
 
             var list = Context.Guild.Users.Where(x => !x.IsBot).ToList();
             var user = list[_random.Next(1, list.Count())];
 
-            if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
-            var loss = _random.Next(0, 11);
-            var mangos = dbo.UserCurrency[Context.User.Id];
-            if (dbo.UserCurrency[Context.User.Id] < 15)
+            if (!dbo.UserStruct.ContainsKey(user.Id))
             {
-                await ReplyAsync($"You do not have enough Mangos to do this! You have {mangos} Mangos!");
+                var newFruit = new Dictionary<Economy.Fruits, int>
+                {
+                    { Economy.Fruits.Guavas, 0 },
+                    { Economy.Fruits.Grapes, 0 },
+                    { Economy.Fruits.Watermelons, 0 },
+                    { Economy.Fruits.Pineapples, 0 },
+                    { Economy.Fruits.Mangos, 0 }
+                };
+                dbo.UserStruct.Add(user.Id, new UserStruct { UserId = user.Id, Warnings = 0, Fruits = newFruit });
+            }
+            var loss = _random.Next(0, 11);
+            var invokersFruit = dbo.UserStruct[Context.User.Id].Fruits[Fruits.Mangos];
+            if (dbo.UserStruct[Context.User.Id].Fruits[Fruits.Mangos] < 5)
+            {
+                await ReplyAsync($"You do not have enough Mangos to do this! You have {invokersFruit} Mangos!");
                 return;
             }
 
-            mangos -= 15;
-            dbo.UserCurrency[Context.User.Id] = mangos;
-            dbo.UserCurrency[user.Id] -= loss;
+            // Removing the 5 Mangos from the user
+            invokersFruit -= 5;
+            dbo.UserStruct[Context.User.Id].Fruits.Remove(dbo.UserStruct[Context.User.Id].Fruits.Keys.FirstOrDefault(x => x.Equals(Fruits.Mangos)));
+            dbo.UserStruct[Context.User.Id].Fruits.Add(dbo.UserStruct[Context.User.Id].Fruits.Keys.FirstOrDefault(x => x.Equals(Fruits.Mangos)), invokersFruit);
+            // Removing the random amount of fruit from the target
+            var fruit = _random.Next(0, 4);
+            Fruits[] fruitTypes = { Fruits.Grapes, Fruits.Guavas, Fruits.Pineapples, Fruits.Watermelons };
+            var lostFruit = dbo.UserStruct[user.Id].Fruits[fruitTypes[fruit]] -= loss;
+            dbo.UserStruct[user.Id].Fruits.Remove(fruitTypes[fruit]);
+            dbo.UserStruct[user.Id].Fruits.Add(dbo.UserStruct[user.Id].Fruits.Keys.FirstOrDefault(x => x.Equals(Fruits.Mangos)), loss);
+
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync(
-                $"User {user.Username} has been shot! The medics charged them {loss} mangos! They have {dbo.UserCurrency[user.Id]} left!\n You have {mangos} Mangos left!");
+            await ReplyAsync($"User {user.Nickname ?? user.Username} has been shot! The medics charged them {loss} {fruitTypes[fruit]}! They have {dbo.UserStruct[user.Id].Fruits[fruitTypes[fruit]]} left!\n You have {dbo.UserStruct[Context.User.Id].Fruits[Fruits.Mangos]} Mangos left!");
         }
 
         [Command("challenge", RunMode = RunMode.Async)]
