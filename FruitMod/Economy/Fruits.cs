@@ -1,11 +1,25 @@
-﻿namespace FruitMod.Economy
+﻿using System.Collections.Generic;
+
+namespace FruitMod.Economy
 {
-    public enum Fruits
+    public class Economy
     {
-        Guavas = 1,
-        Grapes = 2,
-        Watermelons = 3,
-        Pineapples = 4,
-        Mangos = 5
+        public enum Fruit
+        {
+            Guavas,
+            Grapes,
+            Watermelons,
+            Pineapples,
+            Mangos
+        }
+
+        public static Dictionary<Fruit, int> fruitValues = new Dictionary<Fruit, int>
+        {
+            [Fruit.Guavas] = 1,
+            [Fruit.Grapes] = 2,
+            [Fruit.Watermelons] = 3,
+            [Fruit.Pineapples] = 4,
+            [Fruit.Mangos] = 5
+        };
     }
 }

@@ -1,12 +1,12 @@
-﻿using FruitMod.Economy;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using static FruitMod.Economy.Economy;
 
 namespace FruitMod.Objects.DataClasses
 {
-    public struct UserStruct
+    public class UserStruct
     {
         public ulong UserId;
         public int Warnings;
-        public Dictionary<Fruits, int> Fruits;
+        public Dictionary<Fruit, int> Fruit;
     }
 }
