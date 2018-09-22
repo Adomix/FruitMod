@@ -85,7 +85,7 @@ namespace FruitMod.Commands.FunCommands
             var playerWins = headsWin && decider.Equals("heads", StringComparison.OrdinalIgnoreCase) ||
                              !headsWin && decider.Equals("tails", StringComparison.OrdinalIgnoreCase);
 
-            if(invokersFruit + (int)Math.Round(1.2 * bet) >= int.MaxValue)
+            if (invokersFruit + (int)Math.Round(1.2 * bet) >= int.MaxValue)
             {
                 await ReplyAsync("You are going to go over the max! Giving you the difference!");
                 var dif = int.MaxValue - (int)Math.Round(1.2 * bet);
@@ -170,25 +170,47 @@ namespace FruitMod.Commands.FunCommands
         }
 
         [Command("challenge", RunMode = RunMode.Async)]
-        [Summary("Challenges another user! Usage: challenge name amount")]
-        public async Task Challenge(int bet, [Remainder] IUser user)
+        [Summary("Challenges another user! Usage: challenge <bet> <fruit> <user>")]
+        public async Task Challenge(int bet, Fruits fruit, [Remainder] IUser user)
         {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            var mangos = dbo.UserCurrency[Context.User.Id];
             if (bet <= 0)
             {
-                await ReplyAsync($"Bet must be greater than 0! You have {mangos} Mangos!");
+                await ReplyAsync($"Bet must be greater than 0!");
                 return;
             }
 
-            if (dbo.UserCurrency[Context.User.Id] < bet)
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+
+            if (!dbo.UserStruct.ContainsKey(user.Id))
             {
-                await ReplyAsync($"You do not have enough Mangos to do this! You have {mangos} Mangos!");
+                await ReplyAsync("User does not have any fruit!");
                 return;
             }
 
-            var p1 = Context.User as SocketGuildUser;
+            if (!dbo.UserStruct.ContainsKey(Context.User.Id))
+            {
+                var newFruit = new Dictionary<Economy.Fruits, int>
+                {
+                    { Economy.Fruits.Guavas, 0 },
+                    { Economy.Fruits.Grapes, 0 },
+                    { Economy.Fruits.Watermelons, 0 },
+                    { Economy.Fruits.Pineapples, 0 },
+                    { Economy.Fruits.Mangos, 0 }
+                };
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruits = newFruit });
+            }
+
+            var invokersFruit = dbo.UserStruct[Context.User.Id].Fruits[fruit];
+            var receiversFruit = dbo.UserStruct[user.Id].Fruits[fruit];
+
+            var p1 = Context.GuildUser;
             var p2 = user as SocketGuildUser;
+
+            if (invokersFruit < bet)
+            {
+                await ReplyAsync($"You do not have enough Mangos to do this! You have {invokersFruit} {fruit}!");
+                return;
+            }
 
             if (p1 == p2)
             {
@@ -196,7 +218,7 @@ namespace FruitMod.Commands.FunCommands
                 return;
             }
 
-            if (dbo.UserCurrency[p2.Id] < bet)
+            if (receiversFruit < bet)
             {
                 await ReplyAsync("Player 2 does not have enough Mangos!");
                 return;
@@ -208,55 +230,61 @@ namespace FruitMod.Commands.FunCommands
 
             SocketGuildUser winner;
             var odds = _random.Next(1, 11);
-            var msg = await ReplyAsync(
-                $"Player 1 {p1.Nickname ?? p1.Username} has challenged you {p2.Mention} to a duel for {bet} Mangos! Do you accept? y/n (You have 10 seconds)");
+
+            var msg = await ReplyAsync($"Player 1 {p1.Nickname ?? p1.Username} has challenged you {p2.Mention} to a duel for {bet} Mangos! Do you accept? y/n (You have 10 seconds)");
+
             var reply = await Interactive.NextMessageAsync(Context, criteria, TimeSpan.FromSeconds(10));
+
             var content = reply.Content;
-            if (content.Equals("n", StringComparison.OrdinalIgnoreCase) ||
-                content.Equals("no", StringComparison.OrdinalIgnoreCase))
+
+            if (content.Equals("n", StringComparison.OrdinalIgnoreCase) || content.Equals("no", StringComparison.OrdinalIgnoreCase))
             {
                 await msg.ModifyAsync(x => x.Content = "Player 2 has declined!");
             }
-            else if (content.Equals("y", StringComparison.OrdinalIgnoreCase) ||
-                     content.Equals("yes", StringComparison.OrdinalIgnoreCase))
+            else if (content.Equals("y", StringComparison.OrdinalIgnoreCase) || content.Equals("yes", StringComparison.OrdinalIgnoreCase))
             {
                 await msg.ModifyAsync(x => x.Content = "Hazah! Player 2 accepted! I am suiting up for war!");
                 await Task.Delay(2000);
-                await msg.ModifyAsync(x =>
-                    x.Content =
-                        "https://www.speakgif.com/wp-content/uploads/2016/07/indiana-jones-duel-animated-gif.gif");
+                await msg.ModifyAsync(x => x.Content = "https://www.speakgif.com/wp-content/uploads/2016/07/indiana-jones-duel-animated-gif.gif");
                 await Task.Delay(8000);
+
                 if (odds >= 6)
                 {
                     winner = p1;
-                    await msg.ModifyAsync(x =>
-                        x.Content =
-                            $"{p1.Nickname ?? p1.Username} humilitated {p2.Nickname ?? p2.Username} and took their mangos!");
-                    dbo.UserCurrency[p1.Id] += bet;
-                    dbo.UserCurrency[p2.Id] -= bet;
+
+                    await msg.ModifyAsync(x => x.Content = $"{p1.Nickname ?? p1.Username} humilitated {p2.Nickname ?? p2.Username} and took their {fruit}!");
+
+                    dbo.UserStruct[Context.User.Id].Fruits[fruit] += bet;
+                    dbo.UserStruct[user.Id].Fruits[fruit] -= bet;
+
                     _db.StoreObject(dbo, Context.Guild.Id);
-                    await ReplyAsync(
-                        $"{winner.Nickname ?? winner.Username} congrats on the victory! You now have {dbo.UserCurrency[winner.Id]} Mangos!");
+
+                    await ReplyAsync($"{winner.Nickname ?? winner.Username} congrats on the victory! You now have {dbo.UserStruct[winner.Id].Fruits[fruit]} {fruit}!");
                 }
                 else if (odds <= 5)
                 {
                     winner = p2;
-                    await msg.ModifyAsync(x =>
-                        x.Content =
-                            $"{p2.Nickname ?? p2.Username} humilitated {p1.Nickname ?? p1.Username} and took their mangos!");
-                    dbo.UserCurrency[p2.Id] += bet;
-                    dbo.UserCurrency[p1.Id] -= bet;
+
+                    await msg.ModifyAsync(x => x.Content = $"{p2.Nickname ?? p2.Username} humilitated {p1.Nickname ?? p1.Username} and took their mangos!");
+
+                    dbo.UserStruct[user.Id].Fruits[fruit] += bet;
+                    dbo.UserStruct[Context.User.Id].Fruits[fruit] -= bet;
+
                     _db.StoreObject(dbo, Context.Guild.Id);
-                    await ReplyAsync(
-                        $"{winner.Nickname ?? winner.Username} congrats on the victory! You now have {dbo.UserCurrency[winner.Id]} Mangos!");
+
+                    await ReplyAsync($"{winner.Nickname ?? winner.Username} congrats on the victory! You now have {dbo.UserStruct[winner.Id].Fruits[fruit]} Mangos!");
                 }
             }
             else
             {
-                await msg.ModifyAsync(x =>
-                    x.Content = "That is not a valid option. Declining. Please use y or n next time.");
+                await msg.ModifyAsync(x => x.Content = "That is not a valid option. Declining. Please use (y / yes) or (n / no) next time.");
             }
         }
+
+        [Command("challenge", RunMode = RunMode.Async)]
+        [Summary("Challenges another user! Usage: challenge <bet> <fruit> <user>")]
+        public async Task Challenge(int bet, Fruits fruit, [Remainder] string user)
+            => await Challenge(bet, fruit, Context.Guild.Users.FirstOrDefault(x => x.Username.Contains(user) || x.Nickname.Contains(user)));
 
         [Command("cat", RunMode = RunMode.Async)]
         [Alias("cfact")]
@@ -293,7 +321,7 @@ namespace FruitMod.Commands.FunCommands
         public async Task Tti([Remainder] string text)
         {
             _http.DefaultRequestHeaders.Add("X-Mashape-Key", ConfigurationManager.AppSettings["mashape"]);
-            var color = new List<string> {"FF0000", "00A6FF", "AA00FF", "26C200"};
+            var color = new List<string> { "FF0000", "00A6FF", "AA00FF", "26C200" };
             var colorn = _random.Next(color.Count + 1);
             var cpick = color[colorn];
             var response = await _http.GetStringAsync(

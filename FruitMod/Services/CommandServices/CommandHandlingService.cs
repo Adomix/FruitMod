@@ -63,7 +63,7 @@ namespace FruitMod.Services
                             break;
                         case CommandError.BadArgCount:
                             await context.Channel.SendMessageAsync(
-                                "You did not supply the correct amount of arguments for this command. See prefix info <command>");
+                                "You did not supply the correct amount of arguments for this command. See <prefix> help <command>");
                             break;
                         case CommandError.ObjectNotFound:
                             await context.Channel.SendMessageAsync("Target not found!");
@@ -71,14 +71,13 @@ namespace FruitMod.Services
                         case CommandError.Exception:
                             await context.Channel.SendMessageAsync($"Exception: {result.ErrorReason}");
                             break;
+                        case CommandError.UnknownCommand:
+                            await _log.Log(logMessage);
+                            break;
                         default:
                             Console.WriteLine($"Default result error!: {result}");
                             break;
                     }
-
-                    if (!result.IsSuccess)
-                        if (result.ErrorReason.Contains("Unknown"))
-                            await _log.Log(logMessage);
                 }
             });
             return Task.CompletedTask;

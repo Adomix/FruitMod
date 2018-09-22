@@ -158,7 +158,7 @@ namespace FruitMod.Commands.FunCommands
             {
                 if (dbo.UserStruct.ContainsKey(user.Id))
                 {
-                    users.Add(user, dbo.UserStruct[user.Id].Fruits.Sum(x => x.Value));
+                    users.Add(user, dbo.UserStruct[user.Id].Fruits[Fruits.Mangos]);
                 }
             }
 
@@ -179,7 +179,7 @@ namespace FruitMod.Commands.FunCommands
             }
             else
             {
-                await ReplyAsync("Not enough users are participating!");
+                await ReplyAsync("Not enough users with mangos!");
             }
         }
     }
