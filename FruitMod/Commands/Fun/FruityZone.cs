@@ -54,7 +54,7 @@ namespace FruitMod.Commands.FunCommands
             }
 
             var fruits = dbo.UserStruct[Context.User.Id].Fruit;
-            await ReplyAsync($"You have {string.Join("\n", fruits)} fruits!\n Your total fruit value is: {total}");
+            await ReplyAsync($"You have:\n {Format.Code(string.Join("\n", fruits), "ini")}\nYour total fruit value is: {total}\nKey:\n{Format.Code("[Guavas = 1/1] [Grapes = 2/1]\n[Watermelons = 3/1] [Pineapples = 4/1] [Mangos = 5/1]", "ini")}");
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -86,9 +86,14 @@ namespace FruitMod.Commands.FunCommands
             feedback.Add((Context.Guild.Id, Context.User.Id), DateTime.Now);
             var amount = _random.Next(10, 51);
             var fruit = _random.Next(0, 4);
+            var rare = _random.Next(0, 100);
+            if(30 < rare && rare <= 2)
+            {
+                dbo.UserStruct[Context.User.Id].Fruit[Fruit.Mangos] += fruit == (int)Fruit.Mangos ? (int)Math.Round(amount / 2f) : amount;
+            }
             dbo.UserStruct[Context.User.Id].Fruit[(Fruit)fruit] += fruit == (int)Fruit.Mangos ? (int)Math.Round(amount / 2f) : amount;
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"You have been given {amount} of {(Fruit)fruit}!");
+            await ReplyAsync($"You have been given {amount} {(Fruit)fruit}!");
         }
 
         [Command("give", RunMode = RunMode.Async)]
@@ -173,7 +178,7 @@ namespace FruitMod.Commands.FunCommands
                 }
             }
 
-            var topfive = users.OrderBy(x => x.Value);
+            var topfive = users.OrderByDescending(x => x.Value);
 
             var leaders = (from pair in topfive
                            let user = Context.Guild.GetUser(pair.Key.Id) as IGuildUser

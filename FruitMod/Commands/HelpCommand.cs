@@ -11,6 +11,7 @@ using Discord.WebSocket;
 using FruitMod.Database;
 using FruitMod.Interactive.Paginator;
 using FruitMod.Objects;
+using FruitMod.Preconditions;
 using Octokit;
 using Octokit.Internal;
 
@@ -49,6 +50,10 @@ namespace FruitMod.Commands
                 string description = null;
                 foreach (var cmd in module.Commands)
                 {
+                    if (cmd.Preconditions.Any(x => x is OverloadAttribute))
+                    {
+                        continue;
+                    }
                     var result = await cmd.CheckPreconditionsAsync(Context, _provider);
                     if (result.IsSuccess)
                         description += $"**__{cmd.Aliases.First()}__** : => {cmd.Summary ?? "no summary provided"}\n";
