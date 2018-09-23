@@ -7,11 +7,11 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Database;
-using FruitMod.Economy;
 using FruitMod.Extensions;
 using FruitMod.Objects;
 using FruitMod.Objects.DataClasses;
 using FruitMod.Preconditions;
+using static FruitMod.Economy.Economy;
 
 namespace FruitMod.Commands
 {
@@ -62,6 +62,73 @@ namespace FruitMod.Commands
             else
                 await ReplyAsync("User is not banned!");
         }
+
+        [Command("warn", RunMode = RunMode.Async)]
+        [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
+        public async Task Warn(IUser user, [Remainder] string reason = "No reason supplied.")
+        {
+
+            if (!(user is IGuildUser guser)) return;
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+
+            if (dbo.UserStruct.ContainsKey(Context.User.Id))
+            {
+                dbo.UserStruct[Context.User.Id].Warnings.Add(1, reason);
+
+                await ReplyAsync($"User {user.Username} has gained a warning for {reason}");
+
+                _db.StoreObject(dbo, Context.Guild.Id);
+            }
+            else
+            {
+                var newFruit = new Dictionary<Fruit, int>
+                {
+                    { Fruit.Guavas, 0 },
+                    { Fruit.Grapes, 0 },
+                    { Fruit.Watermelons, 0 },
+                    { Fruit.Pineapples, 0 },
+                    { Fruit.Mangos, 0 }
+                };
+
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
+                _db.StoreObject(dbo, Context.Guild.Id);
+
+                if (dbo.UserStruct[Context.User.Id].Warnings.TryAdd(dbo.UserStruct[Context.User.Id].Warnings.Keys.Max() + 1, reason))
+                {
+                    await ReplyAsync($"User {user.Username} has gained a warning!");
+
+                    _db.StoreObject(dbo, Context.Guild.Id);
+                }
+                else
+                {
+                    await ReplyAsync($"User {user.Username} was failed to add to the warning list!");
+                }
+            }
+        }
+
+        [Overload]
+        [Command("warn", RunMode = RunMode.Async)]
+        [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
+        public async Task Warn(string user, [Remainder] string reason = "No reason supplied.")
+            => await Warn(Context.Guild.Users.FirstOrDefault(x => x.Nickname.Contains(user) || x.Username.Contains(user)), reason);
+
+        [Command("warnings", RunMode = RunMode.Async)]
+        [Summary("Shows a users' warnings. Usage: warnings <user>")]
+        public async Task Warnings([Remainder] IUser user)
+        {
+            if (!(user is IGuildUser guser)) return;
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserStruct;
+
+            if (dbo.ContainsKey(user.Id))
+            {
+                await ReplyAsync($"{guser.Nickname ?? guser.Username} Warnings: {dbo[user.Id].Warnings.Keys.Max()}");
+            }
+            else
+            {
+                await ReplyAsync($"{guser.Nickname ?? guser.Username} has no warnings!");
+            }
+        }
+
 
         [Command("bans")]
         [Summary("Shows the users banned")]
@@ -338,7 +405,7 @@ namespace FruitMod.Commands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -389,7 +456,7 @@ namespace FruitMod.Commands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                    dbo.UserStruct.Add(user.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruit = newFruit });
+                    dbo.UserStruct.Add(user.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                     _db.StoreObject(dbo, user.Id);
                 }
 

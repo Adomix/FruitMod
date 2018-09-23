@@ -49,7 +49,7 @@ namespace FruitMod.Commands.FunCommands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -121,7 +121,7 @@ namespace FruitMod.Commands.FunCommands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -138,7 +138,7 @@ namespace FruitMod.Commands.FunCommands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(user.Id, new UserStruct { UserId = user.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(user.Id, new UserStruct { UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
             var loss = _random.Next(0, 11);
@@ -192,7 +192,7 @@ namespace FruitMod.Commands.FunCommands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 

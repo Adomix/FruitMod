@@ -6,7 +6,7 @@ namespace FruitMod.Objects.DataClasses
     public class UserStruct
     {
         public ulong UserId;
-        public int Warnings;
+        public Dictionary<int, string> Warnings;
         public Dictionary<Fruit, int> Fruit;
     }
 }

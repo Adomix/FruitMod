@@ -41,12 +41,20 @@ namespace FruitMod.Commands.FunCommands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
+            int total = 0;
+
+            foreach (Fruit fruit in dbo.UserStruct[Context.User.Id].Fruit.Keys)
+            {
+                var value = fruitValues[fruit] * dbo.UserStruct[Context.User.Id].Fruit[fruit];
+                total += value;
+            }
+
             var fruits = dbo.UserStruct[Context.User.Id].Fruit;
-            await ReplyAsync($"You have {string.Join("\n", fruits)} fruits!\n Your total fruit value:");
+            await ReplyAsync($"You have {string.Join("\n", fruits)} fruits!\n Your total fruit value is: {total}");
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -71,7 +79,7 @@ namespace FruitMod.Commands.FunCommands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -117,7 +125,7 @@ namespace FruitMod.Commands.FunCommands
                     { Fruit.Pineapples, 0 },
                     { Fruit.Mangos, 0 }
                 };
-                dbo.UserStruct.Add(user.Id, new UserStruct { UserId = user.Id, Warnings = 0, Fruit = newFruit });
+                dbo.UserStruct.Add(user.Id, new UserStruct { UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
