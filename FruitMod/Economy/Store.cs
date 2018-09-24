@@ -6,6 +6,7 @@ namespace FruitMod.Economy
     {
         public enum Shop
         {
+            Starter_Garden,
             Moms_Garden,
             Small_Factory,
             Large_Factory,
@@ -18,8 +19,9 @@ namespace FruitMod.Economy
             Guy_Fieri,
         }
 
-        public static Dictionary<Shop, int> shopModifiers = new Dictionary<Shop, int>
+        public static Dictionary<Shop, int> guildModifiers = new Dictionary<Shop, int>
         {
+            [Shop.Starter_Garden] = 1,
             [Shop.Moms_Garden] = 2,
             [Shop.Small_Factory] = 3,
             [Shop.Large_Factory] = 4,

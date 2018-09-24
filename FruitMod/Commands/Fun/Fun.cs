@@ -74,7 +74,7 @@ namespace FruitMod.Commands.FunCommands
             await Task.Delay(4000);
 
             var rare = _random.Next(0, 100);
-            if (30 < rare && rare <= 32)
+            if (30 < rare && rare <= 32 && fruit != Fruit.mangos)
             {
                 if (dbo.UserStruct[Context.User.Id].Fruit[Fruit.mangos] + 2 == int.MaxValue)
                 {
@@ -97,13 +97,13 @@ namespace FruitMod.Commands.FunCommands
                              !headsWin && decider.Equals("tails", StringComparison.OrdinalIgnoreCase);
 
 
-            if (invokersFruit + (int)Math.Round(1.2 * bet) >= int.MaxValue)
+            if (invokersFruit + (int)Math.Round(1.8 * bet) >= int.MaxValue)
             {
                 invokersFruit += playerWins ? int.MaxValue : -bet;
             }
             else
             {
-                invokersFruit += playerWins ? (int)Math.Round(1.2 * bet) : -bet;
+                invokersFruit += playerWins ? (int)Math.Round(1.8 * bet) : -bet;
             }
 
             dbo.UserStruct[Context.User.Id].Fruit[fruit] = invokersFruit;

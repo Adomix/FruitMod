@@ -56,7 +56,7 @@ namespace FruitMod.Commands
                     }
                     var result = await cmd.CheckPreconditionsAsync(Context, _provider);
                     if (result.IsSuccess)
-                        description += $"**__{cmd.Aliases.First()}__** : => {cmd.Summary ?? "no summary provided"}\n";
+                        description += $"__{cmd.Aliases.First()}__ : => {cmd.Summary ?? "no summary provided"}\n";
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))

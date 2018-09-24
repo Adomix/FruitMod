@@ -2,8 +2,8 @@
 using Discord.Commands;
 using FruitMod.Database;
 using FruitMod.Objects;
+using System.Text;
 using System.Threading.Tasks;
-using static FruitMod.Economy.Economy;
 using static FruitMod.Economy.Store;
 
 namespace FruitMod.Commands.Fun
@@ -17,26 +17,24 @@ namespace FruitMod.Commands.Fun
             _db = db;
         }
 
-        [Command("shop")]
-        [Summary("Shows you the fruit shop")]
+        [Command("guild shop")]
+        [Summary("Shows you the guild fruit shop")]
         public async Task ShowShop()
         {
-            string items = "";
-            string fixedItem = null;
-            foreach (var item in shopModifiers.Keys)
+            var items = new StringBuilder();
+            items.AppendLine("== AutoFarmers ==");
+            foreach (var item in guildModifiers.Keys)
             {
+                if (!shopPrices.ContainsKey(item)) continue;
+
                 var newItem = item.ToString();
-                if (newItem.Contains("_"))
-                {
-                    fixedItem = newItem.Replace("_", " ");
-                    items += $"[{fixedItem} + {shopModifiers[item]}% || Cost: ${shopPrices[item]}]\n";
-                }
-                else
-                {
-                    items += $"[{newItem} + {shopModifiers[item]}% || Cost: ${shopPrices[item]}]\n";
-                }
+
+                items.AppendLine(string.Format("[{0,-18} {1, 3}% || Cost: ${2, 8}]", newItem.Replace("_", " "), guildModifiers[item], shopPrices[item]));
             }
-            await ReplyAsync($"Purchasable items:\n{Format.Code(items, "ini")}");
+
+            //items.Insert(items.ToString().LastIndexOf("[Farmers + 2 % || Cost: $500]") , "== Production Boosters ==\n");
+
+            await ReplyAsync($"Purchasable items:\n{Format.Code(items.ToString(), "ini")}");
         }
 
         [Command("value")]
@@ -44,21 +42,8 @@ namespace FruitMod.Commands.Fun
         public async Task GuildValue()
         {
             var dbo = _db.GetById<GlobalCurrencyObject>("GCO");
-            var value = _db.GetById<GuildObjects>(Context.Guild.Id);
-            int total = 0;
-            foreach (var user in Context.Guild.Users)
-            {
-                if (value.UserStruct.ContainsKey(user.Id))
-                {
-                    foreach (var fruit in value.UserStruct[user.Id].Fruit)
-                    {
-                        total += fruit.Value * fruitValues[fruit.Key];
-                    }
-                }
-            }
-            dbo.GuildCurrencyValue[Context.Guild.Id] = total;
-            _db.StoreObject(dbo, "GCO");
-            await ReplyAsync($"This guild's global value: {dbo.GuildCurrencyValue[Context.Guild.Id]}");
+
+            await ReplyAsync($"This guild's global value: {dbo.GuildCurrencyValue[Context.Guild.Id]}\n The guild gains more fruit every 30min. The amount depends on the purchased modifiers.");
         }
     }
 }
