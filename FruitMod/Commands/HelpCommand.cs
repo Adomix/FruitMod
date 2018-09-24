@@ -8,10 +8,10 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
+using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Interactive.Paginator;
 using FruitMod.Objects;
-using FruitMod.Preconditions;
 using Octokit;
 using Octokit.Internal;
 
@@ -50,7 +50,7 @@ namespace FruitMod.Commands
                 string description = null;
                 foreach (var cmd in module.Commands)
                 {
-                    if (cmd.Preconditions.Any(x => x is OverloadAttribute))
+                    if (cmd.Attributes.Any(x => x is OverloadAttribute))
                     {
                         continue;
                     }

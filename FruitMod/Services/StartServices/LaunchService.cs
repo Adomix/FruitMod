@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
+using FruitMod.Economy;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FruitMod.Services
@@ -18,12 +19,14 @@ namespace FruitMod.Services
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
+        private readonly GuildFactoryTimer _timer;
 
-        public LaunchService(DiscordSocketClient client, CommandService commands, IServiceProvider services)
+        public LaunchService(DiscordSocketClient client, CommandService commands, IServiceProvider services, GuildFactoryTimer timer)
         {
             _client = client;
             _commands = commands;
             _services = services;
+            _timer = timer;
         }
 
         public IEnumerable<string> Namespaces { get; set; }
@@ -39,6 +42,7 @@ namespace FruitMod.Services
             GetNamespaces();
             _services.GetService<GuildService>().GuildServices();
             _services.GetService<SharplinkService>().AudioInitialization();
+            InitializeTimer();
         }
 
 
@@ -51,6 +55,11 @@ namespace FruitMod.Services
         private async Task CommandLoader()
         {
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+        }
+
+        private void InitializeTimer()
+        {
+            _timer.StartTimer();
         }
 
         private void GetNamespaces()

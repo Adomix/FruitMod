@@ -138,7 +138,7 @@ namespace FruitMod.Commands
             var roles = suser.Roles.Count > 5
                 ? $"`{string.Join(", ", suser.Roles.OrderBy(x => x.Name))}`"
                 : string.Join(", ", suser.Roles.OrderBy(x => x.Name));
-            var role = suser.Roles.LastOrDefault(x => x.Color != Color.Default);
+            var role = suser.Roles.FirstOrDefault(x => x.Color != Color.Default);
             var color = role?.Color ?? Color.DarkPurple;
 
             var infoembed = new EmbedBuilder()
@@ -150,7 +150,7 @@ namespace FruitMod.Commands
                 .AddField("ID:", suser.Id, true)
                 .AddField("Discriminator:", suser.Discriminator, true)
                 .AddField("Bot:", suser.IsBot, true)
-                .AddField("Created:", suser.CreatedAt.Date, true)
+                .AddField("Created:", suser.CreatedAt, true)
                 .AddField("Joined:", suser.JoinedAt.Value.Date, true)
                 .AddField("Highest Role:", suser.Roles.LastOrDefault(), true)
                 .AddField("User Hierarchy:",

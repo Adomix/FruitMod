@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Database;
+using FruitMod.Economy;
 using FruitMod.Objects;
 
 namespace FruitMod.Services
@@ -23,6 +25,39 @@ namespace FruitMod.Services
         {
             _client.GuildAvailable += AddSettings;
             _client.GuildAvailable += CheckInfoChannel;
+            _client.Ready += GlobalGuildCurrency;
+        }
+
+        private Task GlobalGuildCurrency()
+        {
+            Task.Run(() =>
+            {
+                var guilds = _client.Guilds;
+                var dbo = _db.GetById<GlobalCurrencyObject>("GCO");
+
+                if (dbo == null)
+                {
+                    var newGlobals = new Dictionary<ulong, int>();
+                    foreach (var guild in guilds)
+                    {
+                        newGlobals.Add(guild.Id, 0);
+                    }
+                    _db.StoreObject(new GlobalCurrencyObject { GuildCurrencyValue = newGlobals }, "GCO");
+                }
+                else
+                {
+                    foreach (var guild in guilds)
+                    {
+                        if (!dbo.GuildCurrencyValue.ContainsKey(guild.Id))
+                        {
+                            dbo.GuildCurrencyValue.Add(guild.Id, 0);
+                        }
+                    }
+                    _db.StoreObject(dbo, "GCO");
+                }
+                return Task.CompletedTask;
+            });
+            return Task.CompletedTask;
         }
 
         // _client.GuildAvailable += CheckInfoChannel;

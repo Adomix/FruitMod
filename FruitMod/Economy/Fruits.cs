@@ -6,20 +6,16 @@ namespace FruitMod.Economy
     {
         public enum Fruit
         {
-            Guavas,
-            Grapes,
-            Watermelons,
-            Pineapples,
-            Mangos
+            watermelons,
+            pineapples,
+            mangos
         }
 
         public static Dictionary<Fruit, int> fruitValues = new Dictionary<Fruit, int>
         {
-            [Fruit.Guavas] = 1,
-            [Fruit.Grapes] = 2,
-            [Fruit.Watermelons] = 3,
-            [Fruit.Pineapples] = 4,
-            [Fruit.Mangos] = 5
+            [Fruit.watermelons] = 1,
+            [Fruit.pineapples] = 2,
+            [Fruit.mangos] = 3
         };
     }
 }

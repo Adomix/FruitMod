@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Extensions;
 using FruitMod.Objects;
@@ -83,11 +84,9 @@ namespace FruitMod.Commands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.Guavas, 0 },
-                    { Fruit.Grapes, 0 },
-                    { Fruit.Watermelons, 0 },
-                    { Fruit.Pineapples, 0 },
-                    { Fruit.Mangos, 0 }
+                    { Fruit.watermelons, 0 },
+                    { Fruit.pineapples, 0 },
+                    { Fruit.mangos, 0 }
                 };
 
                 dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
@@ -106,7 +105,7 @@ namespace FruitMod.Commands
             }
         }
 
-        [Overload]
+        [OverloadAttribute]
         [Command("warn", RunMode = RunMode.Async)]
         [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
         public async Task Warn(string user, [Remainder] string reason = "No reason supplied.")
@@ -399,11 +398,9 @@ namespace FruitMod.Commands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.Guavas, 0 },
-                    { Fruit.Grapes, 0 },
-                    { Fruit.Watermelons, 0 },
-                    { Fruit.Pineapples, 0 },
-                    { Fruit.Mangos, 0 }
+                    { Fruit.watermelons, 0 },
+                    { Fruit.pineapples, 0 },
+                    { Fruit.mangos, 0 }
                 };
                 dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
@@ -450,11 +447,9 @@ namespace FruitMod.Commands
                 {
                     var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.Guavas, 0 },
-                    { Fruit.Grapes, 0 },
-                    { Fruit.Watermelons, 0 },
-                    { Fruit.Pineapples, 0 },
-                    { Fruit.Mangos, 0 }
+                    { Fruit.watermelons, 0 },
+                    { Fruit.pineapples, 0 },
+                    { Fruit.mangos, 0 }
                 };
                     dbo.UserStruct.Add(user.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                     _db.StoreObject(dbo, user.Id);
