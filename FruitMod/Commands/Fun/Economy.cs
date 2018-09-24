@@ -22,17 +22,17 @@ namespace FruitMod.Commands.Fun
         public async Task ShowShop()
         {
             var items = new StringBuilder();
-            items.AppendLine("== AutoFarmers ==");
+            items.AppendLine(string.Format("[0,-18]", "== AutoFarmers =="));
             foreach (var item in guildModifiers.Keys)
             {
                 if (!shopPrices.ContainsKey(item)) continue;
 
                 var newItem = item.ToString();
 
-                items.AppendLine(string.Format("[{0,-18} {1, 3}% || Cost: ${2, 8}]", newItem.Replace("_", " "), guildModifiers[item], shopPrices[item]));
+                items.AppendLine(string.Format("[{0,-18} {1, 3}% || Cost: ${2, -6}]", newItem.Replace("_", " "), guildModifiers[item], shopPrices[item]));
             }
 
-            //items.Insert(items.ToString().LastIndexOf("[Farmers + 2 % || Cost: $500]") , "== Production Boosters ==\n");
+            items.Insert(items.ToString().LastIndexOf("[Farmers              2% || Cost: $500   ]") , "== Production Boosters ==\n");
 
             await ReplyAsync($"Purchasable items:\n{Format.Code(items.ToString(), "ini")}");
         }
