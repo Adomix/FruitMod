@@ -16,7 +16,7 @@ namespace FruitMod.Economy
             Cooking_Mama,
             Fertilizer,
             Sprinklers,
-            Guy_Fieri,
+            Guy_Fieri
         }
 
         public static Dictionary<Shop, int> guildModifiers = new Dictionary<Shop, int>
@@ -34,7 +34,7 @@ namespace FruitMod.Economy
             [Shop.Guy_Fieri] = 4
         };
 
-        public static Dictionary<Shop, int> shopPrices= new Dictionary<Shop, int>
+        public static Dictionary<Shop, int> shopPrices = new Dictionary<Shop, int>
         {
             [Shop.Moms_Garden] = 5000,
             [Shop.Small_Factory] = 10000,

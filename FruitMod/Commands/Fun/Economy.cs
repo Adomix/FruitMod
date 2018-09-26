@@ -1,9 +1,9 @@
-﻿using Discord;
+﻿using System.Text;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using FruitMod.Database;
 using FruitMod.Objects;
-using System.Text;
-using System.Threading.Tasks;
 using static FruitMod.Economy.Store;
 
 namespace FruitMod.Commands.Fun
@@ -29,10 +29,12 @@ namespace FruitMod.Commands.Fun
 
                 var newItem = item.ToString();
 
-                items.AppendLine(string.Format("[{0,-18} {1, 3}% || Cost: ${2, -6}]", newItem.Replace("_", " "), guildModifiers[item], shopPrices[item]));
+                items.AppendLine(string.Format("[{0,-18} {1, 3}% || Cost: ${2, -6}]", newItem.Replace("_", " "),
+                    guildModifiers[item], shopPrices[item]));
             }
 
-            items.Insert(items.ToString().LastIndexOf("[Farmers              2% || Cost: $500   ]") , "== Production Boosters ==\n");
+            items.Insert(items.ToString().LastIndexOf("[Farmers              2% || Cost: $500   ]"),
+                "== Production Boosters ==\n");
 
             await ReplyAsync($"Purchasable items:\n{Format.Code(items.ToString(), "ini")}");
         }
@@ -43,7 +45,8 @@ namespace FruitMod.Commands.Fun
         {
             var dbo = _db.GetById<GlobalCurrencyObject>("GCO");
 
-            await ReplyAsync($"This guild's global value: {dbo.GuildCurrencyValue[Context.Guild.Id]}\n The guild gains more fruit every 30min. The amount depends on the purchased modifiers.");
+            await ReplyAsync(
+                $"This guild's global value: {dbo.GuildCurrencyValue[Context.Guild.Id]}\n The guild gains more fruit every 30min. The amount depends on the purchased modifiers.");
         }
     }
 }

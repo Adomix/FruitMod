@@ -78,8 +78,8 @@ namespace FruitMod.Commands.BotOwnerCommands
 
                 if (code.Contains("```cs"))
                 {
-                    code = code.Remove(code.IndexOf("```cs"), 5);
-                    code = code.Remove(code.LastIndexOf("```"), 3);
+                    code = code.Remove(code.IndexOf("```cs", StringComparison.Ordinal), 5);
+                    code = code.Remove(code.LastIndexOf("```", StringComparison.Ordinal), 3);
                 }
 
                 IEnumerable<string> systems = new[]
@@ -117,7 +117,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                     if (result != null)
                     {
                         embed.WithTitle($"Eval result: | Elapsed time: {sw.Elapsed.Humanize()}");
-                        embed.AddField("Input: ", $"{Format.Code(code,"cs")}");
+                        embed.AddField("Input: ", $"{Format.Code(code, "cs")}");
                         embed.AddField("Result: ", $"```cs\n{result}\n```");
                         embed.WithThumbnailUrl("https://pluralsight.imgix.net/paths/path-icons/csharp-e7b8fcd4ce.png");
                         embed.Color = Color.Green;
@@ -226,56 +226,73 @@ namespace FruitMod.Commands.BotOwnerCommands
                 return;
             }
 
-            var channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name.Contains(channelname)).Id);
-            await channel.SendMessageAsync(
-                "Hello! The bot owner has connected to relay chat! I may now read and speak!");
-            Context.Client.MessageReceived += RelayHandler;
-
-            while (true)
-            {
-                await Context.Channel.SendMessageAsync("[Your Message]: ");
-                response = await NextMessageAsync();
-
-                if (response.Content == "exit")
+            SocketTextChannel first = null;
+            foreach (var x in guild.TextChannels)
+                if (x.Name.Contains(channelname))
                 {
-                    await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
-                    Context.Client.MessageReceived -= RelayHandler;
-                    return;
+                    first = x;
+                    break;
                 }
 
-                if (response.Content == "channels")
+            if (first != null)
+            {
+                var channel = guild.GetTextChannel(first.Id);
+                await channel.SendMessageAsync(
+                    "Hello! The bot owner has connected to relay chat! I may now read and speak!");
+                Context.Client.MessageReceived += RelayHandler;
+
+                while (true)
                 {
-                    await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
+                    await Context.Channel.SendMessageAsync("[Your Message]: ");
                     response = await NextMessageAsync();
 
-                    if (channels.Contains(response.Content))
+                    if (response.Content == "exit")
                     {
-                        channelname = channels.First(x => x.Equals(response));
-                    }
-                    else
-                    {
-                        await Context.Channel.SendMessageAsync("Channel does not exist. Case sensitive.");
+                        await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
+                        Context.Client.MessageReceived -= RelayHandler;
                         return;
                     }
 
-                    channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name == channelname).Id);
+                    if (response.Content == "channels")
+                    {
+                        await Context.Channel.SendMessageAsync(
+                            $"Please choose a channel:\n{string.Join("\n", channels)}");
+                        response = await NextMessageAsync();
+
+                        if (channels.Contains(response.Content))
+                        {
+                            channelname = channels.First(x => x.Equals(response));
+                        }
+                        else
+                        {
+                            await Context.Channel.SendMessageAsync("Channel does not exist. Case sensitive.");
+                            return;
+                        }
+
+                        SocketTextChannel first1 = null;
+                        foreach (var x in guild.TextChannels)
+                            if (x.Name == channelname)
+                            {
+                                first1 = x;
+                                break;
+                            }
+
+                        if (first1 != null) channel = guild.GetTextChannel(first1.Id);
+                    }
+
+                    await ((IUserMessage) response).ModifyAsync(x => x.Content = string.Empty);
+
+                    if (response.Content != string.Empty) await channel.SendMessageAsync(response.Content);
                 }
 
-                await (response as IUserMessage).ModifyAsync(x => x.Content = string.Empty);
-
-                if (response.Content != string.Empty)
+                async Task RelayHandler(SocketMessage msg)
                 {
-                    var mymsg = await channel.SendMessageAsync(response.Content);
+                    if (!(msg is SocketUserMessage smsg)) return;
+                    if (channel != null && smsg.Channel.Id != channel.Id) return;
+                    if (smsg.Author.IsBot) return;
+                    await Context.Channel.SendMessageAsync("[Received Relay Message] ");
+                    await Context.Channel.SendMessageAsync($"{smsg.Author} wrote {smsg.Content}");
                 }
-            }
-
-            async Task RelayHandler(SocketMessage msg)
-            {
-                if (!(msg is SocketUserMessage smsg)) return;
-                if (smsg.Channel.Id != channel.Id) return;
-                if (smsg.Author.IsBot) return;
-                await Context.Channel.SendMessageAsync("[Received Relay Message] ");
-                await Context.Channel.SendMessageAsync($"{smsg.Author} wrote {smsg.Content}");
             }
         }
 
@@ -283,14 +300,21 @@ namespace FruitMod.Commands.BotOwnerCommands
         [Summary("relays a chat")]
         public async Task Relay()
         {
-            SocketGuild guild;
+            SocketGuild guild = null;
             await ReplyAsync("Please select a guild");
             await ReplyAsync($"Guilds:\n{string.Join("\n", _client.Guilds.OrderBy(x => x.Name))}");
             var reply = await NextMessageAsync(inSourceChannel: false);
             if (_client.Guilds.Any(x => x.Name.Contains(reply.Content, StringComparison.OrdinalIgnoreCase)))
             {
-                guild = _client.GetGuild(_client.Guilds
-                    .FirstOrDefault(x => x.Name.Contains(reply.Content, StringComparison.OrdinalIgnoreCase)).Id);
+                SocketGuild first = null;
+                foreach (var x in _client.Guilds)
+                    if (x.Name.Contains(reply.Content, StringComparison.OrdinalIgnoreCase))
+                    {
+                        first = x;
+                        break;
+                    }
+
+                if (first != null) guild = _client.GetGuild(first.Id);
             }
             else
             {
@@ -298,71 +322,86 @@ namespace FruitMod.Commands.BotOwnerCommands
                 return;
             }
 
-            var channels = guild.TextChannels.OrderBy(x => x.Name).Select(y => y.Name);
-            await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
-            var response = await NextMessageAsync();
-            string channelname;
-
-            if (channels.Any(x => x.Contains(response.Content)))
+            if (guild != null)
             {
-                channelname = channels.First(x => x.Contains(response.Content));
-            }
-            else
-            {
-                await Context.Channel.SendMessageAsync("Channel does not exist. Case sensitive.");
-                return;
-            }
+                var channels = guild.TextChannels.OrderBy(x => x.Name).Select(y => y.Name);
+                await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
+                var response = await NextMessageAsync();
+                string channelname;
 
-            var channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name.Contains(channelname)).Id);
-            await channel.SendMessageAsync(
-                "Hello! The bot owner has connected to relay chat! I may now read and speak!");
-            Context.Client.MessageReceived += RelayHandlerT;
-
-            while (true)
-            {
-                await Context.Channel.SendMessageAsync("[Your Message]: ");
-                response = await NextMessageAsync();
-
-                if (response.Content == "exit")
+                if (channels.Any(x => x.Contains(response.Content)))
                 {
-                    await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
-                    await Context.Channel.SendMessageAsync("Successfully disconnected!");
-                    Context.Client.MessageReceived -= RelayHandlerT;
+                    channelname = channels.First(x => x.Contains(response.Content));
+                }
+                else
+                {
+                    await Context.Channel.SendMessageAsync("Channel does not exist. Case sensitive.");
                     return;
                 }
 
-                if (response.Content == "channels")
-                {
-                    await Context.Channel.SendMessageAsync($"Please choose a channel:\n{string.Join("\n", channels)}");
-                    response = await NextMessageAsync();
-
-                    if (channels.Contains(response.Content))
+                SocketTextChannel first1 = null;
+                foreach (var x in guild.TextChannels)
+                    if (x.Name.Contains(channelname))
                     {
-                        channelname = channels.First(x => x.Equals(response));
-                    }
-                    else
-                    {
-                        Console.WriteLine("Channel does not exist. Case sensitive.");
-                        return;
+                        first1 = x;
+                        break;
                     }
 
-                    channel = guild.GetTextChannel(guild.TextChannels.FirstOrDefault(x => x.Name == channelname).Id);
-                    await (response as IUserMessage).ModifyAsync(x => x.Content = string.Empty);
-                }
-
-                if (response.Content != string.Empty)
+                if (first1 != null)
                 {
-                    var mymsg = await channel.SendMessageAsync(response.Content);
-                }
-            }
+                    var channel = guild.GetTextChannel(first1.Id);
+                    await channel.SendMessageAsync(
+                        "Hello! The bot owner has connected to relay chat! I may now read and speak!");
+                    Context.Client.MessageReceived += RelayHandlerT;
 
-            async Task RelayHandlerT(SocketMessage msg)
-            {
-                if (!(msg is SocketUserMessage smsg)) return;
-                if (smsg.Channel.Id != channel.Id) return;
-                if (smsg.Author.IsBot) return;
-                await Context.Channel.SendMessageAsync("[Received Relay Message] ");
-                await Context.Channel.SendMessageAsync($"{smsg.Author} wrote {smsg.Content}");
+                    while (true)
+                    {
+                        await Context.Channel.SendMessageAsync("[Your Message]: ");
+                        response = await NextMessageAsync();
+
+                        if (response.Content == "exit")
+                        {
+                            await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
+                            await Context.Channel.SendMessageAsync("Successfully disconnected!");
+                            Context.Client.MessageReceived -= RelayHandlerT;
+                            return;
+                        }
+
+                        if (response.Content == "channels")
+                        {
+                            await Context.Channel.SendMessageAsync(
+                                $"Please choose a channel:\n{string.Join("\n", channels)}");
+                            response = await NextMessageAsync();
+
+                            if (channels.Contains(response.Content))
+                            {
+                                channelname = channels.First(x => response != null && x.Equals(response));
+                            }
+                            else
+                            {
+                                Console.WriteLine("Channel does not exist. Case sensitive.");
+                                return;
+                            }
+
+                            var first = guild.TextChannels.FirstOrDefault(
+                                textChannel => textChannel.Name == channelname);
+
+                            if (first != null) channel = guild.GetTextChannel(first.Id);
+                            await ((IUserMessage) response).ModifyAsync(x => x.Content = string.Empty);
+                        }
+
+                        if (response.Content != string.Empty) await channel.SendMessageAsync(response.Content);
+                    }
+
+                    async Task RelayHandlerT(SocketMessage msg)
+                    {
+                        if (!(msg is SocketUserMessage smsg)) return;
+                        if (channel != null && smsg.Channel.Id != channel.Id) return;
+                        if (smsg.Author.IsBot) return;
+                        await Context.Channel.SendMessageAsync("[Received Relay Message] ");
+                        await Context.Channel.SendMessageAsync($"{smsg.Author} wrote {smsg.Content}");
+                    }
+                }
             }
         }
 
@@ -375,7 +414,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             {
                 await user.SendMessageAsync("The bot owner has started a chat with you!");
                 var channel = await user.GetOrCreateDMChannelAsync();
-                Context.Client.MessageReceived += DMHandler;
+                Context.Client.MessageReceived += DmHandler;
 
                 while (true)
                 {
@@ -388,17 +427,14 @@ namespace FruitMod.Commands.BotOwnerCommands
                     if (response == "exit")
                     {
                         await channel.SendMessageAsync("The bot owner has disconnected from relay chat!");
-                        Context.Client.MessageReceived -= DMHandler;
+                        Context.Client.MessageReceived -= DmHandler;
                         return;
                     }
 
-                    if (response != string.Empty)
-                    {
-                        var mymsg = await channel.SendMessageAsync(response);
-                    }
+                    if (response != string.Empty) await channel.SendMessageAsync(response);
                 }
 
-                async Task DMHandler(SocketMessage msg)
+                async Task DmHandler(SocketMessage msg)
                 {
                     if (msg.Channel.Id != channel.Id) return;
                     if (msg.Author.IsBot) return;
@@ -410,6 +446,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             }
             catch (Exception)
             {
+                // Nothing to see here
             }
         }
     }

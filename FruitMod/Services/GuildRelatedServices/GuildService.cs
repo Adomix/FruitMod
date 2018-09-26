@@ -72,7 +72,7 @@ namespace FruitMod.Services
                 }
 
                 if (!delmsgs.Keys.Contains((umsg.Channel as SocketTextChannel).Guild.Id))
-                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> { umsg });
+                    delmsgs.Add((msg.Channel as SocketTextChannel).Guild.Id, new List<SocketUserMessage> {umsg});
                 else
                     delmsgs[(msg.Channel as SocketTextChannel).Guild.Id].Add(umsg);
 
@@ -86,17 +86,18 @@ namespace FruitMod.Services
                 if (umsg.Author.IsBot && umsg.Author != _client.CurrentUser)
                     return Task.CompletedTask;
 
-                if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.Settings.LogChannel.Value) is SocketTextChannel newChannel)
+                if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.Settings.LogChannel.Value) is SocketTextChannel
+                    newChannel)
                 {
                     if (msg.Channel.Id == dbo.Settings.LogChannel)
-                    {
-                        await newChannel.SendMessageAsync($"Someone tried to delete me in my log channel!\n Message deleted: {umsg.Content}");
-                    }
+                        await newChannel.SendMessageAsync(
+                            $"Someone tried to delete me in my log channel!\n Message deleted: {umsg.Content}");
 
                     if (dbo.Settings.LogChannel == null)
                     {
                         var x = await channel.Guild.GetOwnerAsync();
-                        await x.SendMessageAsync("Please set up a log channel to use logging! prefix setlogs logchannel");
+                        await x.SendMessageAsync(
+                            "Please set up a log channel to use logging! prefix setlogs logchannel");
                     }
                     else
                     {
@@ -113,6 +114,7 @@ namespace FruitMod.Services
                         await newChannel.SendMessageAsync(string.Empty, false, embed);
                     }
                 }
+
                 return Task.CompletedTask;
             });
             return Task.CompletedTask;

@@ -35,23 +35,23 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.watermelons, 0 },
-                    { Fruit.pineapples, 0 },
-                    { Fruit.mangos, 0 }
+                    {Fruit.watermelons, 0},
+                    {Fruit.pineapples, 0},
+                    {Fruit.mangos, 0}
                 };
 
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id,
+                    new UserStruct
+                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
-            int total = 0;
+            var total = 0;
 
-            foreach (var fruit in dbo.UserStruct[Context.User.Id].Fruit)
-            {
-                total += fruit.Value * fruitValues[fruit.Key];
-            }
+            foreach (var fruit in dbo.UserStruct[Context.User.Id].Fruit) total += fruit.Value * fruitValues[fruit.Key];
 
-            await ReplyAsync($"You have:\n{Format.Code(string.Join("\n", dbo.UserStruct[Context.User.Id].Fruit), "ini")}\nKey:{Format.Code("[watermelons = $1] [pineapples = $2] [mangos = $3]", "ini")}\nTotal: {total}");
+            await ReplyAsync(
+                $"You have:\n{Format.Code(string.Join("\n", dbo.UserStruct[Context.User.Id].Fruit), "ini")}\nKey:{Format.Code("[watermelons = $1] [pineapples = $2] [mangos = $3]", "ini")}\nTotal: {total}");
         }
 
         [Command("daily", RunMode = RunMode.Async)]
@@ -70,30 +70,25 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.watermelons, 0 },
-                    { Fruit.pineapples, 0 },
-                    { Fruit.mangos, 0 }
+                    {Fruit.watermelons, 0},
+                    {Fruit.pineapples, 0},
+                    {Fruit.mangos, 0}
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id,
+                    new UserStruct
+                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
             feedback.Add((Context.Guild.Id, Context.User.Id), DateTime.Now);
             var amount = _random.Next(10, 51);
             var fruitPicker = _random.Next(0, 101);
-            Fruit fruit = Fruit.watermelons;
+            var fruit = Fruit.watermelons;
             if (fruitPicker <= 60)
-            {
                 fruit = Fruit.watermelons;
-            }
             else if (fruitPicker >= 61 && fruitPicker <= 90)
-            {
                 fruit = Fruit.pineapples;
-            }
-            else if (fruitPicker >= 91 && fruitPicker <= 100)
-            {
-                fruit = Fruit.mangos;
-            }
+            else if (fruitPicker >= 91 && fruitPicker <= 100) fruit = Fruit.mangos;
             dbo.UserStruct[Context.User.Id].Fruit[fruit] += amount;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"You have been given {amount} {fruit}!");
@@ -103,12 +98,12 @@ namespace FruitMod.Commands.FunCommands
         [Summary("Gives someone x of your fruits! Usage: give <amount> <fruit> <user>")]
         public async Task GiveFruits(int amount, Fruit fruit, IUser user)
         {
-
             if (user.Id == Context.User.Id)
             {
                 await ReplyAsync("You can not give yourself your fruit!");
                 return;
             }
+
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
 
             if (!dbo.UserStruct.ContainsKey(Context.User.Id))
@@ -127,11 +122,12 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.watermelons, 0 },
-                    { Fruit.pineapples, 0 },
-                    { Fruit.mangos, 0 }
+                    {Fruit.watermelons, 0},
+                    {Fruit.pineapples, 0},
+                    {Fruit.mangos, 0}
                 };
-                dbo.UserStruct.Add(user.Id, new UserStruct { UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
+                dbo.UserStruct.Add(user.Id,
+                    new UserStruct {UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -140,7 +136,7 @@ namespace FruitMod.Commands.FunCommands
 
             if (amount <= 0)
             {
-                await ReplyAsync($"Amount must be greater than 0!");
+                await ReplyAsync("Amount must be greater than 0!");
                 return;
             }
 
@@ -169,18 +165,14 @@ namespace FruitMod.Commands.FunCommands
             var number = new List<int>();
             var users = new SortedDictionary<IUser, int>();
             foreach (var user in Context.Guild.Users)
-            {
                 if (dbo.UserStruct.ContainsKey(user.Id))
-                {
                     users.Add(user, dbo.UserStruct[user.Id].Fruit[Fruit.mangos]);
-                }
-            }
 
             var topfive = users.OrderByDescending(x => x.Value);
 
             var leaders = (from pair in topfive
-                           let user = Context.Guild.GetUser(pair.Key.Id) as IGuildUser
-                           select (user.Nickname ?? user.Username, pair.Value)).ToList();
+                let user = Context.Guild.GetUser(pair.Key.Id) as IGuildUser
+                select (user.Nickname ?? user.Username, pair.Value)).ToList();
             if (leaders.Count >= 5)
             {
                 leaders.RemoveRange(5, leaders.Count - 5);

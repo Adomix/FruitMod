@@ -61,14 +61,15 @@ namespace FruitMod.Commands
                 await ReplyAsync("User has been unbanned!");
             }
             else
+            {
                 await ReplyAsync("User is not banned!");
+            }
         }
 
         [Command("warn", RunMode = RunMode.Async)]
         [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
         public async Task Warn(IUser user, [Remainder] string reason = "No reason supplied.")
         {
-
             if (!(user is IGuildUser guser)) return;
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
 
@@ -84,15 +85,18 @@ namespace FruitMod.Commands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.watermelons, 0 },
-                    { Fruit.pineapples, 0 },
-                    { Fruit.mangos, 0 }
+                    {Fruit.watermelons, 0},
+                    {Fruit.pineapples, 0},
+                    {Fruit.mangos, 0}
                 };
 
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id,
+                    new UserStruct
+                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
                 _db.StoreObject(dbo, Context.Guild.Id);
 
-                if (dbo.UserStruct[Context.User.Id].Warnings.TryAdd(dbo.UserStruct[Context.User.Id].Warnings.Keys.Max() + 1, reason))
+                if (dbo.UserStruct[Context.User.Id].Warnings
+                    .TryAdd(dbo.UserStruct[Context.User.Id].Warnings.Keys.Max() + 1, reason))
                 {
                     await ReplyAsync($"User {user.Username} has gained a warning!");
 
@@ -105,11 +109,14 @@ namespace FruitMod.Commands
             }
         }
 
-        [OverloadAttribute]
+        [Overload]
         [Command("warn", RunMode = RunMode.Async)]
         [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
         public async Task Warn(string user, [Remainder] string reason = "No reason supplied.")
-            => await Warn(Context.Guild.Users.FirstOrDefault(x => x.Nickname.Contains(user) || x.Username.Contains(user)), reason);
+        {
+            await Warn(Context.Guild.Users.FirstOrDefault(x => x.Nickname.Contains(user) || x.Username.Contains(user)),
+                reason);
+        }
 
         [Command("warnings", RunMode = RunMode.Async)]
         [Summary("Shows a users' warnings. Usage: warnings <user>")]
@@ -119,13 +126,9 @@ namespace FruitMod.Commands
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserStruct;
 
             if (dbo.ContainsKey(user.Id))
-            {
                 await ReplyAsync($"{guser.Nickname ?? guser.Username} Warnings: {dbo[user.Id].Warnings.Keys.Max()}");
-            }
             else
-            {
                 await ReplyAsync($"{guser.Nickname ?? guser.Username} has no warnings!");
-            }
         }
 
 
@@ -198,17 +201,18 @@ namespace FruitMod.Commands
         public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
         {
             if (user is null) return;
-            await user.ModifyAsync(x => x.Mute = !(bool)x.Mute);
+            await user.ModifyAsync(x => x.Mute = !(bool) x.Mute);
             await ReplyAsync($"User {(user.IsMuted ? "muted" : "unmuted")}! Reason: {reason}");
         }
 
         [Command("vblock")]
-        [Summary("Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
+        [Summary(
+            "Mutes & deafens or mutes & undeafens the targeted user, Usage: !admin block <user> <reason(optional>")]
         public async Task VBlock(IGuildUser user, [Remainder] string reason = "x")
         {
             await user.ModifyAsync(x =>
             {
-                x.Mute = !(bool)x.Mute;
+                x.Mute = !(bool) x.Mute;
                 x.Deaf = x.Mute;
             });
         }
@@ -298,9 +302,9 @@ namespace FruitMod.Commands
             if (!(Context.Channel is ITextChannel channel)) return;
             var messages = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             var msgs = from message in messages
-                       where message.Author.Id == user.Id &&
-                             message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                       select message;
+                where message.Author.Id == user.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             await channel.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
         }
@@ -354,9 +358,9 @@ namespace FruitMod.Commands
                 await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
-                          where message.Author.Id == Context.Client.CurrentUser.Id &&
-                                message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                          select message;
+                where message.Author.Id == Context.Client.CurrentUser.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             await channel.DeleteMessagesAsync(delmsgs);
         }
 
@@ -398,11 +402,13 @@ namespace FruitMod.Commands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    { Fruit.watermelons, 0 },
-                    { Fruit.pineapples, 0 },
-                    { Fruit.mangos, 0 }
+                    {Fruit.watermelons, 0},
+                    {Fruit.pineapples, 0},
+                    {Fruit.mangos, 0}
                 };
-                dbo.UserStruct.Add(Context.User.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
+                dbo.UserStruct.Add(Context.User.Id,
+                    new UserStruct
+                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -425,7 +431,10 @@ namespace FruitMod.Commands
         [Command("fgive")]
         [Summary("Force gives (x) amount of fruit. Usage: fgive <amount> <fruit> <user>")]
         public async Task FGive(int amount, Fruit fruit, string user)
-            => await FGive(amount, fruit, Context.Guild.Users.FirstOrDefault(x => x.Username.Contains(user) || x.Nickname.Contains(user)));
+        {
+            await FGive(amount, fruit,
+                Context.Guild.Users.FirstOrDefault(x => x.Username.Contains(user) || x.Nickname.Contains(user)));
+        }
 
         [Command("fgive all", RunMode = RunMode.Async)]
         [Summary("Gives everyone (x) fruit. Usage: fgive everyone <amount> <fruit>")]
@@ -446,12 +455,14 @@ namespace FruitMod.Commands
                 if (!dbo.UserStruct.ContainsKey(user.Id))
                 {
                     var newFruit = new Dictionary<Fruit, int>
-                {
-                    { Fruit.watermelons, 0 },
-                    { Fruit.pineapples, 0 },
-                    { Fruit.mangos, 0 }
-                };
-                    dbo.UserStruct.Add(user.Id, new UserStruct { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
+                    {
+                        {Fruit.watermelons, 0},
+                        {Fruit.pineapples, 0},
+                        {Fruit.mangos, 0}
+                    };
+                    dbo.UserStruct.Add(user.Id,
+                        new UserStruct
+                            {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
                     _db.StoreObject(dbo, user.Id);
                 }
 
@@ -478,11 +489,9 @@ namespace FruitMod.Commands
                 if (Context.Guild.GetUser(id).IsBot) continue;
 
                 currency.TryAdd(id, 0);
-                foreach (Fruit fruit in dbo.UserStruct[id].Fruit.Keys)
-                {
-                    dbo.UserStruct[id].Fruit[fruit] = 0;
-                }
+                foreach (var fruit in dbo.UserStruct[id].Fruit.Keys) dbo.UserStruct[id].Fruit[fruit] = 0;
             }
+
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync("All the Fruit have been eaten!");
         }
@@ -505,10 +514,7 @@ namespace FruitMod.Commands
                 return;
             }
 
-            foreach (Fruit fruit in dbo.UserStruct[user.Id].Fruit.Keys)
-            {
-                dbo.UserStruct[user.Id].Fruit[fruit] = 0;
-            }
+            foreach (var fruit in dbo.UserStruct[user.Id].Fruit.Keys) dbo.UserStruct[user.Id].Fruit[fruit] = 0;
 
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"User's {user} Fruit have been eaten!");

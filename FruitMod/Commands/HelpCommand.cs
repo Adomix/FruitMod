@@ -50,10 +50,7 @@ namespace FruitMod.Commands
                 string description = null;
                 foreach (var cmd in module.Commands)
                 {
-                    if (cmd.Attributes.Any(x => x is OverloadAttribute))
-                    {
-                        continue;
-                    }
+                    if (cmd.Attributes.Any(x => x is OverloadAttribute)) continue;
                     var result = await cmd.CheckPreconditionsAsync(Context, _provider);
                     if (result.IsSuccess)
                         description += $"{cmd.Aliases.First()} : => __{cmd.Summary ?? "no summary provided"}__\n";

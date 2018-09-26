@@ -50,21 +50,23 @@ namespace FruitMod.Services
                     foreach (var guild in guilds)
                     {
                         newGlobals.Add(guild.Id, 0);
-                        newModifiers.Add(guild.Id, new List<Store.Shop>() { Store.Shop.Starter_Garden });
+                        newModifiers.Add(guild.Id, new List<Store.Shop> {Store.Shop.Starter_Garden});
                     }
-                    _db.StoreObject(new GlobalCurrencyObject { GuildCurrencyValue = newGlobals, AutomatedGuilds = newGlobals, GuildModifiers = newModifiers }, "GCO");
+
+                    _db.StoreObject(
+                        new GlobalCurrencyObject
+                        {
+                            GuildCurrencyValue = newGlobals, AutomatedGuilds = newGlobals, GuildModifiers = newModifiers
+                        }, "GCO");
                 }
                 else
                 {
                     foreach (var guild in guilds)
-                    {
                         if (!dbo.GuildCurrencyValue.ContainsKey(guild.Id))
-                        {
                             dbo.GuildCurrencyValue.Add(guild.Id, 0);
-                        }
-                    }
                     _db.StoreObject(dbo, "GCO");
                 }
+
                 return Task.CompletedTask;
             });
             return Task.CompletedTask;

@@ -9,7 +9,6 @@ namespace FruitMod.Preconditions
 {
     public class RequireAnyUserPermAttribute : PreconditionAttribute
     {
-
         private readonly GuildPermission[] _perms;
 
         public RequireAnyUserPermAttribute(params GuildPermission[] perms)

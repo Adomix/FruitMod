@@ -8,7 +8,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
-using FruitMod.Economy;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FruitMod.Services
