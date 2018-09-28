@@ -18,12 +18,14 @@ namespace FruitMod.Services
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
+        private readonly PushBullet _pb;
 
-        public LaunchService(DiscordSocketClient client, CommandService commands, IServiceProvider services)
+        public LaunchService(DiscordSocketClient client, CommandService commands, IServiceProvider services, PushBullet pb)
         {
             _client = client;
             _commands = commands;
             _services = services;
+            _pb = pb;
         }
 
         public IEnumerable<string> Namespaces { get; set; }
@@ -39,6 +41,7 @@ namespace FruitMod.Services
             GetNamespaces();
             _services.GetService<GuildService>().GuildServices();
             _services.GetService<SharplinkService>().AudioInitialization();
+            NotifyLaunch();
         }
 
 
@@ -57,6 +60,11 @@ namespace FruitMod.Services
         {
             var namespaces = Assembly.GetEntryAssembly().GetTypes().Select(x => x.Namespace).Distinct().Skip(1);
             Namespaces = namespaces;
+        }
+
+        private void NotifyLaunch()
+        {
+            _pb.SendNotification($"FruitMod started at {DateTimeOffset.UtcNow.AddHours(-5)}");
         }
     }
 }

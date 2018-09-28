@@ -51,9 +51,8 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
@@ -137,9 +136,8 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
@@ -154,9 +152,8 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(user.Id,
                     new UserStruct {UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
@@ -179,16 +176,15 @@ namespace FruitMod.Commands.FunCommands
                 .Add(dbo.UserStruct[Context.User.Id].Fruit.Keys.FirstOrDefault(x => x.Equals(Fruit.mangos)),
                     invokersFruit);
             // Removing the random amount of fruit from the target
-            var fruit = _random.Next(0, 4);
-            Fruit[] fruitTypes = {Fruit.pineapples, Fruit.watermelons};
-            var lostFruit = dbo.UserStruct[user.Id].Fruit[fruitTypes[fruit]] -= loss;
-            dbo.UserStruct[user.Id].Fruit.Remove(fruitTypes[fruit]);
+            var fruit = _random.Next(0, 2);
+            var lostFruit = dbo.UserStruct[user.Id].Fruit[Fruit.watermelons] -= loss;
+            dbo.UserStruct[user.Id].Fruit.Remove(Fruit.watermelons);
             dbo.UserStruct[user.Id].Fruit
                 .Add(dbo.UserStruct[user.Id].Fruit.Keys.FirstOrDefault(x => x.Equals(Fruit.mangos)), loss);
 
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync(
-                $"User {user.Nickname ?? user.Username} has been shot! The medics charged them {loss} {fruitTypes[fruit]}! They have {dbo.UserStruct[user.Id].Fruit[fruitTypes[fruit]]} left!\n You have {dbo.UserStruct[Context.User.Id].Fruit[Fruit.mangos]} mangos left!");
+                $"User {user.Nickname ?? user.Username} has been shot! The medics charged them {loss} {Fruit.watermelons}! They have {dbo.UserStruct[user.Id].Fruit[Fruit.watermelons]} left!\n You have {dbo.UserStruct[Context.User.Id].Fruit[Fruit.mangos]} mangos left!");
         }
 
         [Command("challenge", RunMode = RunMode.Async)]
@@ -213,9 +209,8 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct

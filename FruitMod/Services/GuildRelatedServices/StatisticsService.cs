@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -15,20 +14,22 @@ namespace FruitMod.Services
         private readonly CommandHandlingService _commands;
         private readonly DbService _db;
         private readonly LoggingService _log;
+        private readonly PushBullet _pb;
 
         public StatisticsService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
-            LoggingService log)
+            LoggingService log, PushBullet pb)
         {
             _client = client;
             _db = db;
             _commands = commands;
             _log = log;
+            _pb = pb;
         }
 
         public void LoadStats()
         {
             _client.Ready += GuildCount;
-            //_client.JoinedGuild += JGuild;
+            _client.JoinedGuild += JGuild;
             _client.LeftGuild += LGuild;
         }
 
@@ -43,21 +44,19 @@ namespace FruitMod.Services
         // _client.JoinedGuild += JGuild;
         private async Task JGuild(SocketGuild guild)
         {
-            Console.WriteLine("Joined " + guild.Name + " " + guild.Id, Color.Green);
-            Console.WriteLine("Guild count: " + _client.Guilds.Count, Color.Magenta);
-            Console.WriteLine("Total users affected: " + _client.Guilds.Sum(x => x.MemberCount), Color.Magenta);
-            await guild.Owner.SendMessageAsync(
-                "Wow! Thanks for adding my bot, my name is Mango. I would like to know how you found it! Please tell me by typing `@FruitMod#2261 reply message here` thank you!");
+            var exception = new LogMessage(LogSeverity.Info, "Guild", $"Joined: {guild.Name} || Total: {_client.Guilds.Count}");
+            await _log.Log(exception);
+            _pb.SendNotification($"Joined {guild.Name}!");
+            await guild.Owner.SendMessageAsync("Wow! Thanks for adding my bot, my name is Mango. I would like to know how you found it! Please tell me by typing `@FruitMod#2261 reply message here` thank you!");
         }
 
         // _client.LeftGuild += LGuild;
         private Task LGuild(SocketGuild guild)
         {
-            Console.WriteLine("Left " + guild.Name, Color.DarkRed);
-            Console.WriteLine("Guild count: " + _client.Guilds.Count, Color.Magenta);
-            Console.WriteLine("Total users affected: " + _client.Guilds.Sum(x => x.MemberCount), Color.Magenta);
+            var exception = new LogMessage(LogSeverity.Info, "Guild", $"Left: {guild.Name} || Total: {_client.Guilds.Count}");
+            _log.Log(exception);
+            _pb.SendNotification($"Left {guild.Name}!");
             _db.DeleteObject(guild.Id);
-            Console.ResetColor();
             return Task.CompletedTask;
         }
     }

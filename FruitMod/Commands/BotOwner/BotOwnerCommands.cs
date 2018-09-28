@@ -28,15 +28,17 @@ namespace FruitMod.Commands.BotOwnerCommands
         private readonly HttpClient _http;
         private readonly LaunchService _init;
         private readonly IServiceProvider _services;
+        private readonly PushBullet _pb;
 
         public BotOwnerCommands(DiscordSocketClient client, IServiceProvider services, HttpClient http, DbService db,
-            LaunchService init)
+            LaunchService init, PushBullet pb)
         {
             _client = client;
             _services = services;
             _http = http;
             _db = db;
             _init = init;
+            _pb = pb;
         }
 
         [Command("ginfo")]
@@ -280,7 +282,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                         if (first1 != null) channel = guild.GetTextChannel(first1.Id);
                     }
 
-                    await ((IUserMessage) response).ModifyAsync(x => x.Content = string.Empty);
+                    await ((IUserMessage)response).ModifyAsync(x => x.Content = string.Empty);
 
                     if (response.Content != string.Empty) await channel.SendMessageAsync(response.Content);
                 }
@@ -387,7 +389,7 @@ namespace FruitMod.Commands.BotOwnerCommands
                                 textChannel => textChannel.Name == channelname);
 
                             if (first != null) channel = guild.GetTextChannel(first.Id);
-                            await ((IUserMessage) response).ModifyAsync(x => x.Content = string.Empty);
+                            await ((IUserMessage)response).ModifyAsync(x => x.Content = string.Empty);
                         }
 
                         if (response.Content != string.Empty) await channel.SendMessageAsync(response.Content);
@@ -448,6 +450,14 @@ namespace FruitMod.Commands.BotOwnerCommands
             {
                 // Nothing to see here
             }
+        }
+
+        [Command("push")]
+        [Summary("Makes PushBullet notify me")]
+        public Task Push(string msg = "Test")
+        {
+            _pb.SendNotification(msg);
+            return Task.CompletedTask;
         }
     }
 }

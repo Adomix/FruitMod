@@ -22,7 +22,7 @@ namespace FruitMod.Services
         private readonly LoggingService _log;
 
         public GuildService(DiscordSocketClient client, DbService db, CommandHandlingService commands,
-            LoggingService log, BotOwnerCommands boc)
+            LoggingService log, BotOwnerCommands boc, PushBullet pb)
         {
             _client = client;
             _db = db;

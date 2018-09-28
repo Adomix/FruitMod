@@ -85,9 +85,8 @@ namespace FruitMod.Commands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
 
                 dbo.UserStruct.Add(Context.User.Id,
@@ -402,9 +401,8 @@ namespace FruitMod.Commands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
@@ -456,9 +454,8 @@ namespace FruitMod.Commands
                 {
                     var newFruit = new Dictionary<Fruit, int>
                     {
-                        {Fruit.watermelons, 0},
-                        {Fruit.pineapples, 0},
-                        {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                     };
                     dbo.UserStruct.Add(user.Id,
                         new UserStruct

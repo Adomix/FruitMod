@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -35,14 +34,13 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0 }
                 };
 
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
-                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -70,28 +68,20 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    { Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
-                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
             feedback.Add((Context.Guild.Id, Context.User.Id), DateTime.Now);
             var amount = _random.Next(10, 51);
-            var fruitPicker = _random.Next(0, 101);
-            var fruit = Fruit.watermelons;
-            if (fruitPicker <= 60)
-                fruit = Fruit.watermelons;
-            else if (fruitPicker >= 61 && fruitPicker <= 90)
-                fruit = Fruit.pineapples;
-            else if (fruitPicker >= 91 && fruitPicker <= 100) fruit = Fruit.mangos;
-            dbo.UserStruct[Context.User.Id].Fruit[fruit] += amount;
+            dbo.UserStruct[Context.User.Id].Fruit[Fruit.mangos] += amount;
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"You have been given {amount} {fruit}!");
+            await ReplyAsync($"You have been given {amount} {Fruit.mangos}!");
         }
 
         [Command("give", RunMode = RunMode.Async)]
@@ -122,12 +112,11 @@ namespace FruitMod.Commands.FunCommands
             {
                 var newFruit = new Dictionary<Fruit, int>
                 {
-                    {Fruit.watermelons, 0},
-                    {Fruit.pineapples, 0},
-                    {Fruit.mangos, 0}
+                    {Fruit.mangos, 0},
+                    {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(user.Id,
-                    new UserStruct {UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    new UserStruct { UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -158,35 +147,10 @@ namespace FruitMod.Commands.FunCommands
 
         [Command("leaderboard")]
         [Alias("lb")]
-        [Summary("Shows the top 5 people with mangos")]
+        [Summary("WIP (Being reworked)")]
         public async Task Leaderboard()
         {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            var number = new List<int>();
-            var users = new SortedDictionary<IUser, int>();
-            foreach (var user in Context.Guild.Users)
-                if (dbo.UserStruct.ContainsKey(user.Id))
-                    users.Add(user, dbo.UserStruct[user.Id].Fruit[Fruit.mangos]);
-
-            var topfive = users.OrderByDescending(x => x.Value);
-
-            var leaders = (from pair in topfive
-                let user = Context.Guild.GetUser(pair.Key.Id) as IGuildUser
-                select (user.Nickname ?? user.Username, pair.Value)).ToList();
-            if (leaders.Count >= 5)
-            {
-                leaders.RemoveRange(5, leaders.Count - 5);
-                var embed = new EmbedBuilder()
-                    .WithTitle("mangos Leaderboard!")
-                    .AddField("Top five people:", $"{string.Join("\n", leaders)}")
-                    .WithColor(Color.Teal)
-                    .Build();
-                await ReplyAsync(embed: embed);
-            }
-            else
-            {
-                await ReplyAsync("Not enough users with mangos!");
-            }
+            await ReplyAsync("WIP");
         }
     }
 }

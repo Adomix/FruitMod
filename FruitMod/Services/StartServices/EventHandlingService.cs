@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using FruitMod.Attributes;
@@ -18,9 +19,10 @@ namespace FruitMod.Services
         private readonly DbService _db;
         private readonly LoggingService _log;
         private readonly LavalinkManager _manager;
+        private PushBullet _pb;
 
         public EventHandlingService(DiscordSocketClient client, LavalinkManager manager, DbService db,
-            AudioService audio, CommandHandlingService commands, LoggingService log)
+            AudioService audio, CommandHandlingService commands, LoggingService log, PushBullet pb)
         {
             _client = client;
             _manager = manager;
@@ -28,6 +30,7 @@ namespace FruitMod.Services
             _audio = audio;
             _commands = commands;
             _log = log;
+            _pb = pb;
         }
 
         public void InstallCommandsAsync()
@@ -35,6 +38,28 @@ namespace FruitMod.Services
             _client.Ready += TestWarning;
             _client.Ready += TestError;
             _client.Connected += SetGame;
+            _client.Disconnected += Disconnected;
+            _client.Connected += Connected;
+        }
+
+        private Task Disconnected(Exception exception)
+        {
+            Task.Run(() =>
+            {
+                _pb.SendNotification($"FruitMod disconnected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
+                return Task.CompletedTask;
+            });
+            return Task.CompletedTask;
+        }
+
+        private Task Connected()
+        {
+            Task.Run(() =>
+            {
+                _pb.SendNotification($"FruitMod Connected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
+                return Task.CompletedTask;
+            });
+            return Task.CompletedTask;
         }
 
         // _client.Connected += SetGame

@@ -9,6 +9,7 @@ using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Interactive;
 using Microsoft.Extensions.DependencyInjection;
+using PushbulletSharp;
 using SharpLink;
 using Console = Colorful.Console;
 
@@ -47,6 +48,8 @@ namespace FruitMod.Services
                 TotalShards = 1 // Please set this to the total amount of shards your bot uses
             });
 
+            PushbulletClient client = new PushbulletClient(ConfigurationManager.AppSettings["pushbullet"]);
+
             _client.Log += Log;
             _manager.Log += LavalinkLog;
 
@@ -57,6 +60,7 @@ namespace FruitMod.Services
                 .AddSingleton(_commands)
                 .AddSingleton(_manager)
                 .AddSingleton(_random)
+                .AddSingleton(client)
                 .AddSingleton<InteractiveService>();
 
             var service = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
