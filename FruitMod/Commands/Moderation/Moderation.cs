@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Extensions;
 using FruitMod.Objects;
+using FruitMod.Objects.DataClasses;
 using FruitMod.Preconditions;
+using static FruitMod.Economy.Economy;
 
 namespace FruitMod.Commands
 {
@@ -58,35 +61,61 @@ namespace FruitMod.Commands
                 await ReplyAsync("User has been unbanned!");
             }
             else
+            {
                 await ReplyAsync("User is not banned!");
+            }
         }
 
         [Command("warn", RunMode = RunMode.Async)]
         [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
         public async Task Warn(IUser user, [Remainder] string reason = "No reason supplied.")
         {
-            // This one is for my good ol' pal JustNrik ;`)
-
             if (!(user is IGuildUser guser)) return;
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.Warnings;
-            if (dbo.ContainsKey(Context.User.Id))
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+
+            if (dbo.UserStruct.ContainsKey(Context.User.Id))
             {
-                dbo[Context.User.Id].Add((dbo[Context.User.Id].Sum(x => x.Item1)+1, reason));
-                await ReplyAsync("User has gained a warning!");
+                dbo.UserStruct[Context.User.Id].Warnings.Add(1, reason);
+
+                await ReplyAsync($"User {user.Username} has gained a warning for {reason}");
+
+                _db.StoreObject(dbo, Context.Guild.Id);
             }
             else
             {
-                List<(int, string)> newList = new List<(int, string)>();
-                if (dbo.TryAdd(Context.User.Id, newList))
+                var newFruit = new Dictionary<Fruit, int>
                 {
-                    dbo[Context.User.Id].Add((1, reason));
-                    await ReplyAsync("User has gained a warning!");
+                    {Fruit.watermelons, 0},
+                    {Fruit.pineapples, 0},
+                    {Fruit.mangos, 0}
+                };
+
+                dbo.UserStruct.Add(Context.User.Id,
+                    new UserStruct
+                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                _db.StoreObject(dbo, Context.Guild.Id);
+
+                if (dbo.UserStruct[Context.User.Id].Warnings
+                    .TryAdd(dbo.UserStruct[Context.User.Id].Warnings.Keys.Max() + 1, reason))
+                {
+                    await ReplyAsync($"User {user.Username} has gained a warning!");
+
+                    _db.StoreObject(dbo, Context.Guild.Id);
                 }
                 else
                 {
-                    await ReplyAsync("User was failed to add to the warning list!");
+                    await ReplyAsync($"User {user.Username} was failed to add to the warning list!");
                 }
             }
+        }
+
+        [Overload]
+        [Command("warn", RunMode = RunMode.Async)]
+        [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
+        public async Task Warn(string user, [Remainder] string reason = "No reason supplied.")
+        {
+            await Warn(Context.Guild.Users.FirstOrDefault(x => x.Nickname.Contains(user) || x.Username.Contains(user)),
+                reason);
         }
 
         [Command("warnings", RunMode = RunMode.Async)]
@@ -94,18 +123,14 @@ namespace FruitMod.Commands
         public async Task Warnings([Remainder] IUser user)
         {
             if (!(user is IGuildUser guser)) return;
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserSettings.Warnings;
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id).UserStruct;
 
-            if (dbo.ContainsKey(Context.User.Id))
-            {
-                await ReplyAsync($"{guser.Nickname ?? guser.Username} Warnings: {string.Join("\n", dbo[Context.User.Id])}");
-            }
+            if (dbo.ContainsKey(user.Id))
+                await ReplyAsync($"{guser.Nickname ?? guser.Username} Warnings: {dbo[user.Id].Warnings.Keys.Max()}");
             else
-            {
                 await ReplyAsync($"{guser.Nickname ?? guser.Username} has no warnings!");
-            }
-
         }
+
 
         [Command("bans")]
         [Summary("Shows the users banned")]
@@ -176,7 +201,7 @@ namespace FruitMod.Commands
         public async Task VMute(IGuildUser user, [Remainder] string reason = "x")
         {
             if (user is null) return;
-            await user.ModifyAsync(x => x.Mute = !(bool)x.Mute);
+            await user.ModifyAsync(x => x.Mute = !(bool) x.Mute);
             await ReplyAsync($"User {(user.IsMuted ? "muted" : "unmuted")}! Reason: {reason}");
         }
 
@@ -187,7 +212,7 @@ namespace FruitMod.Commands
         {
             await user.ModifyAsync(x =>
             {
-                x.Mute = !(bool)x.Mute;
+                x.Mute = !(bool) x.Mute;
                 x.Deaf = x.Mute;
             });
         }
@@ -277,24 +302,24 @@ namespace FruitMod.Commands
             if (!(Context.Channel is ITextChannel channel)) return;
             var messages = await Context.Channel.GetMessagesAsync(amount).FlattenAsync();
             var msgs = from message in messages
-                       where message.Author.Id == user.Id &&
-                             message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                       select message;
+                where message.Author.Id == user.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             await channel.DeleteMessagesAsync(msgs);
             await ReplyAsync($"User @{user} has been purged!");
         }
 
         [Command("role add")]
-        [Summary("Adds someone a role. Usage role give <user> <role>")]
+        [Summary("Adds someone a role. Usage role add <user> <role>")]
         public async Task RoleGive(IUser user, [Remainder] IRole role)
         {
             await Context.GuildUser.AddRoleAsync(role);
             await ReplyAsync($"Role {role} added to {user}!");
         }
 
-        [Command("role add", RunMode = RunMode.Async)]
-        [Summary("Adds everyone a role. Usage: role give <role>")]
-        public async Task RoleGive([Remainder] IRole role)
+        [Command("role add all", RunMode = RunMode.Async)]
+        [Summary("Adds everyone a role. Usage: role add <role>")]
+        public async Task RoleGiveAll([Remainder] IRole role)
         {
             await Task.WhenAll(Context.Guild.Users.Select(async x => await x.AddRoleAsync(role)));
             await ReplyAsync($"Role {role} added to everyone!");
@@ -315,9 +340,9 @@ namespace FruitMod.Commands
             await ReplyAsync($"Role {role} has been removed from {guser}!");
         }
 
-        [Command("role del", RunMode = RunMode.Async)]
-        [Summary("Deletes a role from everyone. Usage: role del<role>")]
-        public async Task RoleDel([Remainder] IRole role)
+        [Command("role del all", RunMode = RunMode.Async)]
+        [Summary("Deletes a role from everyone. Usage: role del all <role>")]
+        public async Task RoleDelAll([Remainder] IRole role)
         {
             await Task.WhenAll(Context.Guild.Users.Select(async x => await x.RemoveRoleAsync(role)));
             await ReplyAsync($"Role {role} has been removed from everyone!");
@@ -333,9 +358,9 @@ namespace FruitMod.Commands
                 await ReplyAsync("You may not clear me in my log channel!");
             var msgs = await Context.Channel.GetMessagesAsync().FlattenAsync();
             var delmsgs = from message in msgs
-                          where message.Author.Id == Context.Client.CurrentUser.Id &&
-                                message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
-                          select message;
+                where message.Author.Id == Context.Client.CurrentUser.Id &&
+                      message.CreatedAt >= DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(14))
+                select message;
             await channel.DeleteMessagesAsync(delmsgs);
         }
 
@@ -349,13 +374,15 @@ namespace FruitMod.Commands
             await ReplyAsync(string.Join("\n", roles.Select(x => x.Name)));
         }
 
-        [Command("mangos give")]
-        [Summary("gives x of mangos. Usage: agive 10 user")]
-        public async Task AGive(int amount, [Remainder] IUser user)
+        [Command("fgive")]
+        [Summary("Force gives (x) amount of fruit. Usage: fgive <amount> <fruit> <user>")]
+        public async Task FGive(int amount, Fruit fruit, [Remainder] IUser user)
         {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
-            var userGive = dbo.UserCurrency[user.Id];
+            if (user.IsBot)
+            {
+                await ReplyAsync("Bots can not have fruit!");
+                return;
+            }
 
             if (user is null)
             {
@@ -369,89 +396,128 @@ namespace FruitMod.Commands
                 return;
             }
 
-            if (userGive + amount == int.MaxValue)
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+
+            if (!dbo.UserStruct.ContainsKey(Context.User.Id))
             {
-                await ReplyAsync($"User is already at the max amount of Mangos! {int.MaxValue}");
+                var newFruit = new Dictionary<Fruit, int>
+                {
+                    {Fruit.watermelons, 0},
+                    {Fruit.pineapples, 0},
+                    {Fruit.mangos, 0}
+                };
+                dbo.UserStruct.Add(Context.User.Id,
+                    new UserStruct
+                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                _db.StoreObject(dbo, Context.Guild.Id);
+            }
+
+            var receiversFruit = dbo.UserStruct[user.Id].Fruit[fruit];
+
+            if (receiversFruit + amount >= int.MaxValue)
+            {
+                await ReplyAsync($"User can not go over the max amount! ({int.MaxValue}) giving the difference!");
+                amount = int.MaxValue - amount;
                 return;
             }
 
-            userGive += amount;
-            dbo.UserCurrency[user.Id] = userGive;
+            receiversFruit += amount;
+            dbo.UserStruct[user.Id].Fruit[fruit] = receiversFruit;
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"You have successfully given {user} {amount} Mangos!");
+            await ReplyAsync($"You have successfully given {user} {amount} of {fruit}!");
         }
 
-        [Command("mangos give", RunMode = RunMode.Async)]
-        [Summary("gives x of mangos. Usage: agive 10 @everyone")]
-        public async Task AGive(int amount, [Remainder] IRole role)
+        [Overload]
+        [Command("fgive")]
+        [Summary("Force gives (x) amount of fruit. Usage: fgive <amount> <fruit> <user>")]
+        public async Task FGive(int amount, Fruit fruit, string user)
         {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (role is null)
-            {
-                await ReplyAsync("You must specify a role!");
-                return;
-            }
+            await FGive(amount, fruit,
+                Context.Guild.Users.FirstOrDefault(x => x.Username.Contains(user) || x.Nickname.Contains(user)));
+        }
 
+        [Command("fgive all", RunMode = RunMode.Async)]
+        [Summary("Gives everyone (x) fruit. Usage: fgive everyone <amount> <fruit>")]
+        public async Task FGiveAll(int amount, Fruit fruit)
+        {
             if (amount <= 0)
             {
                 await ReplyAsync("The amount must be greater than zero!");
                 return;
             }
 
-            foreach (IUser user in (role as SocketRole).Members)
-            {
-                if (!dbo.UserCurrency.ContainsKey(user.Id)) dbo.UserCurrency.TryAdd(user.Id, 0);
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
 
-                if (dbo.UserCurrency[user.Id] + amount > int.MaxValue)
-                    dbo.UserCurrency[user.Id] = int.MaxValue;
+            foreach (IUser user in Context.Guild.GetRole(Context.Guild.Id).Members)
+            {
+                if (user.IsBot) continue;
+
+                if (!dbo.UserStruct.ContainsKey(user.Id))
+                {
+                    var newFruit = new Dictionary<Fruit, int>
+                    {
+                        {Fruit.watermelons, 0},
+                        {Fruit.pineapples, 0},
+                        {Fruit.mangos, 0}
+                    };
+                    dbo.UserStruct.Add(user.Id,
+                        new UserStruct
+                            {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    _db.StoreObject(dbo, user.Id);
+                }
+
+                var receiversFruit = dbo.UserStruct[user.Id].Fruit[fruit];
+
+                if (receiversFruit + amount > int.MaxValue)
+                    dbo.UserStruct[user.Id].Fruit[fruit] = int.MaxValue;
                 else
-                    dbo.UserCurrency[user.Id] += amount;
+                    dbo.UserStruct[user.Id].Fruit[fruit] += amount;
             }
 
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"You have successfully given `{role.Name}` {amount} Mangos!");
+            await ReplyAsync($"You have successfully given `@everyone` {amount} {fruit}!");
         }
 
-        [Command("mangos del", RunMode = RunMode.Async)]
-        [Summary("Resets everyones mangos")]
-        public async Task MangoR()
+        [Command("Fruit del all", RunMode = RunMode.Async)]
+        [Summary("Resets everyones fruit. Usage: Fruit del all")]
+        public async Task FruitDelAll()
         {
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             var currency = new ConcurrentDictionary<ulong, int>();
-            foreach (var id in dbo.UserCurrency.Keys) currency.TryAdd(id, 0);
-
-            dbo.UserCurrency = currency;
-            _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync("All the Mangos have been eaten!");
-        }
-
-        [Command("mangos del", RunMode = RunMode.Async)]
-        [Summary("Resets everyones mangos. Usage: mangor user")]
-        public async Task MangoR([Remainder] IUser user)
-        {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            if (!dbo.UserCurrency.ContainsKey(Context.User.Id)) dbo.UserCurrency.TryAdd(Context.User.Id, 0);
-
-            dbo.UserCurrency[user.Id] = 0;
-            _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync($"User's {user} Mangos have been eaten!");
-        }
-
-        [Command("mangos delb", RunMode = RunMode.Async)]
-        [Summary("Removes all bots added during mango admin operations")]
-        public async Task Mangorb()
-        {
-            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
-            var newDict = new ConcurrentDictionary<ulong, int>();
-            foreach (var x in dbo.UserCurrency)
+            foreach (var id in dbo.UserStruct.Keys)
             {
-                var user = Context.Guild.GetUser(x.Key);
-                if (!user.IsBot) newDict.TryAdd(x.Key, x.Value);
+                if (Context.Guild.GetUser(id).IsBot) continue;
+
+                currency.TryAdd(id, 0);
+                foreach (var fruit in dbo.UserStruct[id].Fruit.Keys) dbo.UserStruct[id].Fruit[fruit] = 0;
             }
 
-            dbo.UserCurrency = newDict;
             _db.StoreObject(dbo, Context.Guild.Id);
-            await ReplyAsync("All bots removed!");
+            await ReplyAsync("All the Fruit have been eaten!");
+        }
+
+        [Command("Fruit del", RunMode = RunMode.Async)]
+        [Summary("Resets someones fruit. Usage: Fruit del <user>")]
+        public async Task FruitDel([Remainder] IUser user)
+        {
+            if (user.IsBot)
+            {
+                await ReplyAsync("Bots can not have fruit!");
+                return;
+            }
+
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+
+            if (!dbo.UserStruct.ContainsKey(user.Id))
+            {
+                await ReplyAsync("User has no Fruit!");
+                return;
+            }
+
+            foreach (var fruit in dbo.UserStruct[user.Id].Fruit.Keys) dbo.UserStruct[user.Id].Fruit[fruit] = 0;
+
+            _db.StoreObject(dbo, Context.Guild.Id);
+            await ReplyAsync($"User's {user} Fruit have been eaten!");
         }
     }
 }

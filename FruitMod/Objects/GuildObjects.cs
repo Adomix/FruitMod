@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using FruitMod.Objects.DataClasses;
 
 namespace FruitMod.Objects
@@ -8,8 +9,8 @@ namespace FruitMod.Objects
         public Settings Settings = new Settings();
         public UserSettings UserSettings = new UserSettings();
 
-        public ConcurrentDictionary<ulong, int> UserCurrency { get; set; } = new ConcurrentDictionary<ulong, int>();
-
         public ConcurrentQueue<string> MusicQueue { get; set; } = new ConcurrentQueue<string>();
+
+        public Dictionary<ulong, UserStruct> UserStruct { get; set; } = new Dictionary<ulong, UserStruct>();
     }
 }

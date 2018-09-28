@@ -8,6 +8,7 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
+using FruitMod.Attributes;
 using FruitMod.Database;
 using FruitMod.Interactive.Paginator;
 using FruitMod.Objects;
@@ -39,7 +40,7 @@ namespace FruitMod.Commands
         {
             var prefixes = string.Join(", ", _db.GetById<GuildObjects>(Context.Guild.Id).Settings.Prefixes);
             var pages = new List<string>();
-            var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner"));
+            var modules = CommandService.Modules.Where(x => !x.Name.Contains("Owner")).OrderBy(y => y.Name);
 
             var role = Context.GuildUser.Roles.LastOrDefault(x => x.Color != Color.Default);
             var color = role?.Color ?? Color.DarkPurple;
@@ -49,9 +50,10 @@ namespace FruitMod.Commands
                 string description = null;
                 foreach (var cmd in module.Commands)
                 {
+                    if (cmd.Attributes.Any(x => x is OverloadAttribute)) continue;
                     var result = await cmd.CheckPreconditionsAsync(Context, _provider);
                     if (result.IsSuccess)
-                        description += $"**__{cmd.Aliases.First()}__** : => {cmd.Summary ?? "no summary provided"}\n";
+                        description += $"{cmd.Aliases.First()} : => __{cmd.Summary ?? "no summary provided"}__\n";
                 }
 
                 if (!string.IsNullOrWhiteSpace(description))

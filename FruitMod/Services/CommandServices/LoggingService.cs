@@ -39,7 +39,9 @@ namespace FruitMod.Services
 
             Console.Write($"[{DateTime.Now:dd-MM-yyyy HH:mm:ss}] [{sev,-8}]");
             Console.ResetColor();
-            Console.WriteLine($" {message.Message}");
+            var exception = "";
+            if (message.Exception != null) exception = message.Exception.ToString();
+            Console.WriteLine($" {message.Message} {exception}");
             return Task.CompletedTask;
         }
 

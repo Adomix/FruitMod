@@ -64,7 +64,6 @@ namespace FruitMod.Services
                 var msg = await oldmsg.GetOrDownloadAsync();
 
                 if (!(msg is SocketUserMessage umsg)) return Task.CompletedTask;
-                if (msg.Channel.Id == dbo.Settings.LogChannel) return Task.CompletedTask;
 
                 if (delmsgs.Values.Count >= 50)
                 {
@@ -84,29 +83,36 @@ namespace FruitMod.Services
                 else
                     attachment = null;
 
-                if (umsg.Author.IsBot)
+                if (umsg.Author.IsBot && umsg.Author != _client.CurrentUser)
                     return Task.CompletedTask;
 
-                if (dbo.Settings.LogChannel == null)
+                if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.Settings.LogChannel.Value) is SocketTextChannel
+                    newChannel)
                 {
-                    var x = await channel.Guild.GetOwnerAsync();
-                    await x.SendMessageAsync("Please set up a log channel to use logging! prefix setlogs logchannel");
-                }
-                else
-                {
-                    var embed = new EmbedBuilder()
-                        .WithTitle("A message has been deleted!")
-                        .AddField($"User's {umsg.Author} message has been deleted!",
-                            Format.Code(
-                                $"[{umsg.Content}]\nAttachments {umsg.Attachments.Count()}:[{attachment ?? "No attachment"}]",
-                                "ini"))
-                        .AddField("From channel:", $"```ini\n[{umsg.Channel}]\n```")
-                        .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
-                        .WithColor(Color.Red)
-                        .Build();
-                    if ((channel as SocketTextChannel)?.Guild.GetChannel(dbo.Settings.LogChannel.Value) is
-                        SocketTextChannel newChannel)
+                    if (msg.Channel.Id == dbo.Settings.LogChannel)
+                        await newChannel.SendMessageAsync(
+                            $"Someone tried to delete me in my log channel!\n Message deleted: {umsg.Content}");
+
+                    if (dbo.Settings.LogChannel == null)
+                    {
+                        var x = await channel.Guild.GetOwnerAsync();
+                        await x.SendMessageAsync(
+                            "Please set up a log channel to use logging! prefix setlogs logchannel");
+                    }
+                    else
+                    {
+                        var embed = new EmbedBuilder()
+                            .WithTitle("A message has been deleted!")
+                            .AddField($"User's {umsg.Author} message has been deleted!",
+                                Format.Code(
+                                    $"[{umsg.Content}]\nAttachments {umsg.Attachments.Count()}:[{attachment ?? "No attachment"}]",
+                                    "ini"))
+                            .AddField("From channel:", $"```ini\n[{umsg.Channel}]\n```")
+                            .WithFooter($"Deleted at: {DateTime.UtcNow.AddHours(-4): M/d/y h:mm:ss tt} EST")
+                            .WithColor(Color.Red)
+                            .Build();
                         await newChannel.SendMessageAsync(string.Empty, false, embed);
+                    }
                 }
 
                 return Task.CompletedTask;

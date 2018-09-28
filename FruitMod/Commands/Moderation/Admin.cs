@@ -49,6 +49,7 @@ namespace FruitMod.Commands
                 await ReplyAsync("This is not a moderator role!");
                 return;
             }
+
             var roles = dbo.Settings.ModRoles;
             roles.Remove(role.Id);
             dbo.Settings.ModRoles = roles;
