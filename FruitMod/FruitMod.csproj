@@ -42,6 +42,9 @@
     <Reference Include="Discord.Net.WebSocket">
       <HintPath>..\..\..\GitHub\Discord.Net\src\Discord.Net.WebSocket\bin\Debug\netstandard2.0\Discord.Net.WebSocket.dll</HintPath>
     </Reference>
+    <Reference Include="PushBulletNet">
+      <HintPath>..\..\PushBulletNet\PushBulletNet\bin\Debug\netstandard2.0\PushBulletNet.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
