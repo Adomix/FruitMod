@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,11 +23,6 @@ namespace FruitMod.Commands.AudioCommands
         {
             _manager = manager;
             _db = db;
-        }
-
-        ~AudioService()
-        {
-            Console.WriteLine("Player destructed!");
         }
 
         public async Task JoinAsync(SocketGuildUser user, ulong guildId, string title, SocketTextChannel channel)
