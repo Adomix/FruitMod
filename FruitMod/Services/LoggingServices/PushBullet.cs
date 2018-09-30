@@ -1,5 +1,4 @@
-﻿using Discord;
-using FruitMod.Attributes;
+﻿using FruitMod.Attributes;
 using FruitMod.Services;
 using PushBulletNet;
 using PushBulletNet.POST;
@@ -22,14 +21,14 @@ namespace FruitMod
 
         public async void SendNotification(string msg)
         {
-            PushReq push = new PushReq
+            PushRequest push = new PushRequest
             {
-                TargetDeviceIdentity = _client.Devices.FirstOrDefault(x => x.Manufacturer.Equals("Samsung", StringComparison.OrdinalIgnoreCase)).Iden,
+                TargetDeviceIdentity = _client.UserDevices.Devices.FirstOrDefault(x => x.Manufacturer.Equals("Samsung", StringComparison.OrdinalIgnoreCase)).Iden,
                 Title = "FruitMod Alert!",
                 Content = msg
             };
 
-            await _client.PushNotificationReq(push);
+            await _client.PushRequestAsync(push);
         }
     }
 }
