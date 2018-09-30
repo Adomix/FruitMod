@@ -93,9 +93,7 @@ namespace FruitMod.Commands.AudioCommands
         }
 
         public async Task Dequeued(LavalinkPlayer player, LavalinkTrack track, string dequeuedtitle)
-        {
-            await CheckQueue(_player.VoiceChannel.Guild.Id);
-        }
+            => await CheckQueue(_player.VoiceChannel.Guild.Id);
 
         // Now for the extra tasks
 
@@ -125,10 +123,8 @@ namespace FruitMod.Commands.AudioCommands
         }
 
         public async Task SetVolumeAsync(uint volume)
-        {
-            await _player.SetVolumeAsync(volume);
-        }
-
+            => await _player.SetVolumeAsync(volume);
+        
         public async Task SeeQueue(ulong guildId, ISocketMessageChannel channel)
         {
             var dbo = _db.GetById<GuildObjects>(guildId);
