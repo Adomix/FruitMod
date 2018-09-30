@@ -112,10 +112,8 @@ namespace FruitMod.Commands
         [Command("warn", RunMode = RunMode.Async)]
         [Summary("Warns a user. Usage: warn <user> <reason(optional)>")]
         public async Task Warn(string user, [Remainder] string reason = "No reason supplied.")
-        {
-            await Warn(Context.Guild.Users.FirstOrDefault(x => x.Nickname.Contains(user) || x.Username.Contains(user)),
+            => await Warn(Context.Guild.Users.FirstOrDefault(x => x.Nickname.Contains(user) || x.Username.Contains(user)),
                 reason);
-        }
 
         [Command("warnings", RunMode = RunMode.Async)]
         [Summary("Shows a users' warnings. Usage: warnings <user>")]
