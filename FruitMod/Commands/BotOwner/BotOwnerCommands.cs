@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -454,7 +454,7 @@ namespace FruitMod.Commands.BotOwnerCommands
 
         [Command("push")]
         [Summary("Makes PushBullet notify me")]
-        public Task Push(string msg = "Test")
+        public Task Push([Remainder] string msg = "Test")
         {
             _pb.SendNotification(msg);
             return Task.CompletedTask;
