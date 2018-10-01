@@ -48,7 +48,7 @@ namespace FruitMod.Services
                 TotalShards = 1 // Please set this to the total amount of shards your bot uses
             });
 
-            PBClient client = await PBClient.GetInstance(ConfigurationManager.AppSettings["pushbullet"]);
+            PBClient client = await PBClient.GetClientAsync(ConfigurationManager.AppSettings["pushbullet"]);
 
             _client.Log += Log;
             _manager.Log += LavalinkLog;
@@ -70,6 +70,9 @@ namespace FruitMod.Services
             var builtService = _services.BuildServiceProvider();
 
             await builtService.GetService<LaunchService>().StartAsync();
+
+            var PBException = new LogMessage(LogSeverity.Info, "PushBullet", $"PushBullet connected! ID: {client.UserData.Iden}");
+            await _log.Log(PBException);
 
             await Task.Delay(-1);
         }

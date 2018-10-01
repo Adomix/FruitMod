@@ -46,18 +46,17 @@ namespace FruitMod.Services
         {
             var exception = new LogMessage(LogSeverity.Info, "Guild", $"Joined: {guild.Name} || Total: {_client.Guilds.Count}");
             await _log.Log(exception);
-            _pb.SendNotification($"Joined {guild.Name}!");
+            await _pb.SendNotificationAsync($"Joined {guild.Name}!");
             await guild.Owner.SendMessageAsync("Wow! Thanks for adding my bot, my name is Mango. I would like to know how you found it! Please tell me by typing `@FruitMod#2261 reply message here` thank you!");
         }
 
         // _client.LeftGuild += LGuild;
-        private Task LGuild(SocketGuild guild)
+        private async Task LGuild(SocketGuild guild)
         {
             var exception = new LogMessage(LogSeverity.Info, "Guild", $"Left: {guild.Name} || Total: {_client.Guilds.Count}");
-            _log.Log(exception);
-            _pb.SendNotification($"Left {guild.Name}!");
+            await _log.Log(exception);
+            await _pb.SendNotificationAsync($"Left {guild.Name}!");
             _db.DeleteObject(guild.Id);
-            return Task.CompletedTask;
         }
     }
 }

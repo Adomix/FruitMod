@@ -44,20 +44,20 @@ namespace FruitMod.Services
 
         private Task Disconnected(Exception exception)
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                _pb.SendNotification($"FruitMod disconnected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
-                return Task.CompletedTask;
+                await _pb.SendNotificationAsync($"FruitMod disconnected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
+                return;
             });
             return Task.CompletedTask;
         }
 
         private Task Connected()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                _pb.SendNotification($"FruitMod Connected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
-                return Task.CompletedTask;
+                await _pb.SendNotificationAsync($"FruitMod Connected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
+                return;
             });
             return Task.CompletedTask;
         }

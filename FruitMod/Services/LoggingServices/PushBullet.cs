@@ -4,6 +4,7 @@ using PushBulletNet;
 using PushBulletNet.POST;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace FruitMod
 {
@@ -19,7 +20,7 @@ namespace FruitMod
             _log = log;
         }
 
-        public async void SendNotification(string msg)
+        public async Task SendNotificationAsync(string msg)
         {
             PushRequest push = new PushRequest
             {

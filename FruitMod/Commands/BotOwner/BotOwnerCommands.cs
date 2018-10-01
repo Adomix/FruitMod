@@ -454,7 +454,7 @@ namespace FruitMod.Commands.BotOwnerCommands
 
         [Command("push")]
         [Summary("Makes PushBullet notify me")]
-        public Task Push([Remainder] string msg = "Test")
-            => _pb.SendNotification(msg);
+        public async Task Push([Remainder] string msg = "Test")
+           => await _pb.SendNotificationAsync(msg);
     }
 }

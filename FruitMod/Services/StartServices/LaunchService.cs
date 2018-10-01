@@ -62,9 +62,9 @@ namespace FruitMod.Services
             Namespaces = namespaces;
         }
 
-        private void NotifyLaunch()
+        private async void NotifyLaunch()
         {
-            _pb.SendNotification($"FruitMod started at {DateTimeOffset.UtcNow.AddHours(-5)}");
+            await _pb.SendNotificationAsync($"FruitMod started at {DateTimeOffset.UtcNow.AddHours(-5)}");
         }
     }
 }
