@@ -42,25 +42,12 @@ namespace FruitMod.Services
             _client.Connected += Connected;
         }
 
-        private Task Disconnected(Exception exception)
-        {
-            Task.Run(async () =>
-            {
-                await _pb.SendNotificationAsync($"FruitMod disconnected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
-                return;
-            });
-            return Task.CompletedTask;
-        }
+        private async Task Disconnected(Exception exception)
+               => await _pb.SendNotificationAsync($"FruitMod disconnected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
 
-        private Task Connected()
-        {
-            Task.Run(async () =>
-            {
-                await _pb.SendNotificationAsync($"FruitMod Connected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
-                return;
-            });
-            return Task.CompletedTask;
-        }
+
+        private async Task Connected()
+            => await _pb.SendNotificationAsync($"FruitMod Connected at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
 
         // _client.Connected += SetGame
         private async Task SetGame()
