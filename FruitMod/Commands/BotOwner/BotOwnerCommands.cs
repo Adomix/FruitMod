@@ -456,5 +456,25 @@ namespace FruitMod.Commands.BotOwnerCommands
         [Summary("Makes PushBullet notify me")]
         public async Task Push([Remainder] string msg = "Test")
            => await _pb.SendNotificationAsync(msg);
+
+        [Command("restart", RunMode = RunMode.Async)]
+        [Summary("Restarts the bot")]
+        public async Task BotRestart()
+        {
+            var bot = new Process()
+            {
+                StartInfo = new ProcessStartInfo()
+                {
+                    FileName = "dotnet",
+                    Arguments = "FruitMod.dll",
+                    WorkingDirectory = Environment.CurrentDirectory,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false
+                }
+            };
+            await _pb.SendNotificationAsync($"FruitMod is restarting at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
+            bot.Start();
+            Environment.Exit(-1);
+        }
     }
 }
