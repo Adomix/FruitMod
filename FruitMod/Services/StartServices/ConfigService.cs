@@ -48,7 +48,10 @@ namespace FruitMod.Services
                 TotalShards = 1 // Please set this to the total amount of shards your bot uses
             });
 
-            PBClient client = await PBClient.GetClientAsync(ConfigurationManager.AppSettings["pushbullet"]);
+            PushBulletClient client = new PushBulletClient(ConfigurationManager.AppSettings["pushbullet"]);
+            var devices = await client.GetDevicesAsync();
+            var device = devices.FirstOrDefault(x => x.Manufacturer.Equals("Samsung", StringComparison.OrdinalIgnoreCase));
+            var pbdata = await client.GetUserDataAsync();
 
             _client.Log += Log;
             _manager.Log += LavalinkLog;
@@ -61,6 +64,7 @@ namespace FruitMod.Services
                 .AddSingleton(_manager)
                 .AddSingleton(_random)
                 .AddSingleton(client)
+                .AddSingleton(device)
                 .AddSingleton<InteractiveService>();
 
             var service = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
@@ -71,7 +75,7 @@ namespace FruitMod.Services
 
             await builtService.GetService<LaunchService>().StartAsync();
 
-            var PBException = new LogMessage(LogSeverity.Info, "PushBullet", $"PushBullet connected! ID: {client.UserData.Iden}");
+            var PBException = new LogMessage(LogSeverity.Info, "PushBullet", $"PushBullet connected! ID: {pbdata.Iden}");
             await _log.Log(PBException);
 
             await Task.Delay(-1);
