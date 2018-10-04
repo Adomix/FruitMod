@@ -38,6 +38,7 @@ namespace FruitMod.Commands
             var time = DateTime.Now - Process.GetCurrentProcess().StartTime;
             await ReplyAsync(
                 $"About me: {Format.Code($"Name: [{botInfo.Name}] Id: [{botInfo.Id}]\nOwner: [{botInfo.Owner}] Status: [{Context.Client.Status}]\nUptime: [{time.Humanize()}] Connection: [{Context.Client.ConnectionState}]\nModules: [{_cmd.Modules.Count()}] Commands: [{_cmd.Commands.Count()}]\nSource: [https://github.com/Adomix/FruitMod]", "ini")}");
+            await ReplyAsync($"Machine name: [{Environment.MachineName}]\nWorking set: [{Environment.WorkingSet}]\nUbuntu version: {Environment.OSVersion}");
         }
 
         [Command("discord")]
