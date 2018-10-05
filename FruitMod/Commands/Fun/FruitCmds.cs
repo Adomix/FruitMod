@@ -48,8 +48,7 @@ namespace FruitMod.Commands.FunCommands
 
             foreach (var fruit in dbo.UserStruct[Context.User.Id].Fruit) total += fruit.Value * fruitValues[fruit.Key];
 
-            await ReplyAsync(
-                $"You have:\n{Format.Code(string.Join("\n", dbo.UserStruct[Context.User.Id].Fruit), "ini")}\nKey:{Format.Code("[watermelons = $1] [pineapples = $2] [mangos = $3]", "ini")}\nTotal: {total}");
+            await ReplyAsync($"You have:\n{Format.Code(string.Join("\n", dbo.UserStruct[Context.User.Id].Fruit), "ini")}");
         }
 
         [Command("daily")]
@@ -82,6 +81,22 @@ namespace FruitMod.Commands.FunCommands
             dbo.UserStruct[Context.User.Id].Fruit[Fruit.mangos] += amount;
             _db.StoreObject(dbo, Context.Guild.Id);
             await ReplyAsync($"You have been given {amount} {Fruit.mangos}!");
+        }
+
+        [Command("convert")]
+        [Summary("Converts 100 mangos to 1 watermelon usage: convert <#OfConversions(optional)>")]
+        public async Task FruitConvert(int times = 1)
+        {
+            var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
+            if (dbo.UserStruct[Context.User.Id].Fruit[Fruit.mangos] < 100*times)
+            {
+                await ReplyAsync("You do not have enough mangos to convert! 1 watermelon is 100 mangos!");
+                return;
+            }
+            dbo.UserStruct[Context.User.Id].Fruit[Fruit.mangos] -= 100 * times;
+            dbo.UserStruct[Context.User.Id].Fruit[Fruit.watermelons] += 1 * times;
+            _db.StoreObject(dbo, Context.Guild.Id);
+            await ReplyAsync($"{100*times} mangos have been converted to {times} watermelons!");
         }
 
         [Command("give")]

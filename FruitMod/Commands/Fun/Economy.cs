@@ -57,6 +57,11 @@ namespace FruitMod.Commands.Fun
                 await ReplyAsync("The guild does not have enough fruit to purchase this upgrade!");
                 return;
             }
+            if(dbo.GuildModifiers.ContainsKey(Context.Guild.Id) && dbo.GuildModifiers[Context.Guild.Id].Contains(modifier))
+            {
+                await ReplyAsync("This guild already has this modifier!");
+                return;
+            }
             dbo.GuildCurrencyValue[Context.Guild.Id] -= shopPrices[modifier];
             dbo.GuildModifiers[Context.Guild.Id].Add(modifier);
             _db.StoreObject(dbo, "GCO");
