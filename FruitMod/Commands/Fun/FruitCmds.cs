@@ -25,7 +25,7 @@ namespace FruitMod.Commands.FunCommands
             _db = db;
         }
 
-        [Command("fruits", RunMode = RunMode.Async)]
+        [Command("fruits")]
         [Summary("Shows you your fruits!!")]
         public async Task ShowFruits()
         {
@@ -52,7 +52,7 @@ namespace FruitMod.Commands.FunCommands
                 $"You have:\n{Format.Code(string.Join("\n", dbo.UserStruct[Context.User.Id].Fruit), "ini")}\nKey:{Format.Code("[watermelons = $1] [pineapples = $2] [mangos = $3]", "ini")}\nTotal: {total}");
         }
 
-        [Command("daily", RunMode = RunMode.Async)]
+        [Command("daily")]
         [Summary("Awards you your daily amount of fruit!")]
         public async Task Daily()
         {
@@ -84,7 +84,7 @@ namespace FruitMod.Commands.FunCommands
             await ReplyAsync($"You have been given {amount} {Fruit.mangos}!");
         }
 
-        [Command("give", RunMode = RunMode.Async)]
+        [Command("give")]
         [Summary("Gives someone x of your fruits! Usage: give <amount> <fruit> <user>")]
         public async Task GiveFruits(int amount, Fruit fruit, IUser user)
         {
