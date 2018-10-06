@@ -13,6 +13,7 @@ using FruitMod.Database;
 using FruitMod.Interactive.Criteria;
 using FruitMod.Objects;
 using FruitMod.Objects.DataClasses;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static FruitMod.Economy.Economy;
 
@@ -56,7 +57,7 @@ namespace FruitMod.Commands.FunCommands
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
-                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -101,10 +102,10 @@ namespace FruitMod.Commands.FunCommands
                              !headsWin && decider.Equals("tails", StringComparison.OrdinalIgnoreCase);
 
 
-            if (invokersFruit + (int) Math.Round(1.8 * bet) >= int.MaxValue)
+            if (invokersFruit + (int)Math.Round(1.8 * bet) >= int.MaxValue)
                 invokersFruit += playerWins ? int.MaxValue : -bet;
             else
-                invokersFruit += playerWins ? (int) Math.Round(1.8 * bet) : -bet;
+                invokersFruit += playerWins ? (int)Math.Round(1.8 * bet) : -bet;
 
             dbo.UserStruct[Context.User.Id].Fruit[fruit] = invokersFruit;
 
@@ -119,7 +120,7 @@ namespace FruitMod.Commands.FunCommands
             if (playerWins)
                 await msg.ModifyAsync(x =>
                     x.Content =
-                        $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you won! You have won {(int) Math.Round(1.2 * bet)} {fruit}!");
+                        $"{Context.GuildUser.Nickname ?? Context.GuildUser.Username} you won! You have won {(int)Math.Round(1.2 * bet)} {fruit}!");
             else
                 await msg.ModifyAsync(x =>
                     x.Content =
@@ -141,7 +142,7 @@ namespace FruitMod.Commands.FunCommands
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
-                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -156,7 +157,7 @@ namespace FruitMod.Commands.FunCommands
                     {Fruit.watermelons, 0}
                 };
                 dbo.UserStruct.Add(user.Id,
-                    new UserStruct {UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    new UserStruct { UserId = user.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -214,7 +215,7 @@ namespace FruitMod.Commands.FunCommands
                 };
                 dbo.UserStruct.Add(Context.User.Id,
                     new UserStruct
-                        {UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit});
+                    { UserId = Context.User.Id, Warnings = new Dictionary<int, string>(), Fruit = newFruit });
                 _db.StoreObject(dbo, Context.Guild.Id);
             }
 
@@ -344,10 +345,12 @@ namespace FruitMod.Commands.FunCommands
         [Summary("Returns a wolfram alpha output")]
         public async Task Wa([Remainder] string input)
         {
-            var jResponse = JObject.Parse(await _http.GetStringAsync(
-                $"https://api.wolframalpha.com/v2/query?input={input}&format=image,plaintext&output=JSON&appid=" +
-                ConfigurationManager.AppSettings["wolfram"]));
-            await ReplyAsync(jResponse["queryresult"]["pods"][2]["subpods"][0]["plaintext"].ToString());
+            using (var obj = await _http.GetAsync($"https://api.wolframalpha.com/v2/query?input={input}&format=image,plaintext&output=JSON&appid={ConfigurationManager.AppSettings["wolfram"]}"))
+            {
+                var json = JsonConvert.DeserializeObject<WolframStuff>(await obj.Content.ReadAsStringAsync());
+                var spod = json.QueryResult.Pods.FirstOrDefault().Subpods.FirstOrDefault().Plaintext;
+                await ReplyAsync(spod);
+            }
         }
 
         [Command("tti", RunMode = RunMode.Async)]
@@ -355,12 +358,37 @@ namespace FruitMod.Commands.FunCommands
         public async Task Tti([Remainder] string text)
         {
             _http.DefaultRequestHeaders.Add("X-Mashape-Key", ConfigurationManager.AppSettings["mashape"]);
-            var color = new List<string> {"FF0000", "00A6FF", "AA00FF", "26C200"};
+            var color = new List<string> { "FF0000", "00A6FF", "AA00FF", "26C200" };
             var colorn = _random.Next(color.Count + 1);
             var cpick = color[colorn];
             var response = await _http.GetStringAsync(
                 $"https://img4me.p.mashape.com/?bcolor=%23{cpick}&fcolor=000000&font=trebuchet&size=12&text={text}&type=png");
             await ReplyAsync(response);
         }
+
+        public class WolframStuff
+        {
+            [JsonProperty("queryresult")]
+            public Queryresult QueryResult { get; set; }
+
+            public partial class Queryresult
+            {
+                [JsonProperty("pods")]
+                public Pod[] Pods { get; set; }
+            }
+
+            public partial class Pod
+            {
+                [JsonProperty("subpods")]
+                public Subpod[] Subpods { get; set; }
+            }
+
+            public partial class Subpod
+            {
+                [JsonProperty("plaintext")]
+                public string Plaintext { get; set; }
+            }
+        }
+
     }
 }
