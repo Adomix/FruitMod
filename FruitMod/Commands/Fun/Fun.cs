@@ -348,8 +348,8 @@ namespace FruitMod.Commands.FunCommands
             using (var obj = await _http.GetAsync($"https://api.wolframalpha.com/v2/query?input={input}&format=image,plaintext&output=JSON&appid={ConfigurationManager.AppSettings["wolfram"]}"))
             {
                 var json = JsonConvert.DeserializeObject<WolframStuff>(await obj.Content.ReadAsStringAsync());
-                var spod = json.QueryResult.Pods.FirstOrDefault().Subpods.FirstOrDefault().Plaintext;
-                await ReplyAsync(spod);
+                var spod = json.QueryResult.Pods.SelectMany(x => x.Subpods).Select(y => y.Plaintext).Take(3);
+                await ReplyAsync($"Returned results:\n{string.Join("\n", spod)}");
             }
         }
 
