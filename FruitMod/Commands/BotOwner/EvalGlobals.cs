@@ -4,12 +4,14 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using FruitMod.Database;
+using PushBulletNet;
 
 namespace FruitMod.Commands.BotOwnerCommands
 {
     public class EvalGlobals
     {
         public DbService db;
+        public PushBulletClient pb;
         public FruitModContext Context { get; set; }
         public SocketUserMessage Message { get; set; }
         public HttpClient HttpClient { get; set; }

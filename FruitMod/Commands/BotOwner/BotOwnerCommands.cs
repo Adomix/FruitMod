@@ -16,6 +16,7 @@ using FruitMod.Services;
 using Humanizer;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using PushBulletNet;
 
 namespace FruitMod.Commands.BotOwnerCommands
 {
@@ -29,9 +30,10 @@ namespace FruitMod.Commands.BotOwnerCommands
         private readonly LaunchService _init;
         private readonly IServiceProvider _services;
         private readonly PushBullet _pb;
+        private readonly PushBulletClient _pbc;
 
         public BotOwnerCommands(DiscordSocketClient client, IServiceProvider services, HttpClient http, DbService db,
-            LaunchService init, PushBullet pb)
+            LaunchService init, PushBullet pb, PushBulletClient pbc)
         {
             _client = client;
             _services = services;
@@ -39,6 +41,7 @@ namespace FruitMod.Commands.BotOwnerCommands
             _db = db;
             _init = init;
             _pb = pb;
+            _pbc = pbc;
         }
 
         [Command("ginfo")]
@@ -99,7 +102,8 @@ namespace FruitMod.Commands.BotOwnerCommands
                     Message = Context.SMessage,
                     Services = _services,
                     HttpClient = _http,
-                    db = _db
+                    db = _db,
+                    pb = _pbc
                 };
                 var msg = await ReplyAsync("Evaluating....");
                 File.Delete("out.txt");
