@@ -38,7 +38,7 @@ namespace FruitMod.Commands.FunCommands
         [Alias("coin flip")]
         [Summary(
             "Bet your Fruit and flip a coin! Usage: flip <amount> <heads/tails> <fruit(option, default is grapes)>")]
-        public async Task Flip(int bet, string decider, Fruit fruit = Fruit.watermelons)
+        public async Task Flip(int bet, string decider, Fruit fruit = Fruit.mangos)
         {
             if (bet <= 0)
             {

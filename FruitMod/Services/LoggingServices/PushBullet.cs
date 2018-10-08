@@ -1,7 +1,7 @@
 ﻿using FruitMod.Attributes;
 using FruitMod.Services;
 using PushBulletNet;
-using PushBulletNet.PushBullet.Model;
+using PushBulletNet.PushBullet.Models;
 using System.Threading.Tasks;
 
 namespace FruitMod

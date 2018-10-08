@@ -50,7 +50,7 @@ namespace FruitMod.Services
 
             PushBulletClient client = new PushBulletClient(ConfigurationManager.AppSettings["pushbullet"]);
             var devices = await client.GetDevicesAsync();
-            var device = devices.FirstOrDefault(x => x.Manufacturer.Equals("Samsung", StringComparison.OrdinalIgnoreCase));
+            var device = devices.FirstOrDefault(x => x.Manufacturer == "samsung");
             var pbdata = await client.GetUserDataAsync();
 
             _client.Log += Log;
