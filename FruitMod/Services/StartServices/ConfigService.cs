@@ -49,9 +49,9 @@ namespace FruitMod.Services
             });
 
             PushBulletClient client = new PushBulletClient(ConfigurationManager.AppSettings["pushbullet"]);
-            var devices = await client.GetDevicesAsync();
-            var device = devices.FirstOrDefault(x => x.Manufacturer == "samsung");
             var pbdata = await client.GetUserDataAsync();
+            var devices = await client.GetDevicesAsync();
+            var device = devices.FirstOrDefault(x => x.Manufacturer.Equals("samsung", StringComparison.OrdinalIgnoreCase));
 
             _client.Log += Log;
             _manager.Log += LavalinkLog;
