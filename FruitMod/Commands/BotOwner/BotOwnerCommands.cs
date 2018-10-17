@@ -11,6 +11,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using FruitMod.Attributes;
 using FruitMod.Database;
+using FruitMod.Extensions;
 using FruitMod.Objects;
 using FruitMod.Services;
 using Humanizer;
@@ -479,6 +480,16 @@ namespace FruitMod.Commands.BotOwnerCommands
             await _pb.SendNotificationAsync($"FruitMod is restarting at {DateTimeOffset.UtcNow.AddHours(-5):MM/dd : HH:mm}");
             bot.Start();
             Environment.Exit(-1);
+        }
+
+        [Command("announce")]
+        [Summary("Announces a major change")]
+        public async Task UpdateAnnounce([Remainder] string msg)
+        {
+            foreach(var user in _client.Guilds.Select(x => x.Owner))
+            {
+                await user.TryDMAsync($"IMPORTANT UPDATE: {msg}!");
+            }
         }
     }
 }
