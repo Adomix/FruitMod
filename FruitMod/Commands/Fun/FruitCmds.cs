@@ -51,6 +51,11 @@ namespace FruitMod.Commands.FunCommands
                 await ReplyAsync("You have already redeemed your daily today!");
                 return;
             }
+            else if(feedback.ContainsKey((Context.Guild.Id, Context.User.Id)) &&
+                feedback[(Context.Guild.Id, Context.User.Id)].Date != DateTime.Now.Date)
+            {
+                feedback.Remove((Context.Guild.Id, Context.User.Id));
+            }
 
             var dbo = _db.GetById<GuildObjects>(Context.Guild.Id);
             if (!dbo.UserStruct.ContainsKey(Context.User.Id))
